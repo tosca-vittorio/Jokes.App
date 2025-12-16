@@ -68,11 +68,11 @@ namespace JokesApp.Server.Domain.Entities
         #region Constructors
 
         /// <summary>
-        /// Costruttore protetto richiesto dagli strumenti di persistenza (es. ORM/strumenti di persistenza).
-        /// Non deve essere utilizzato manualmente nel codice di dominio.
+        /// Costruttore richiesto da EF Core.
         /// </summary>
-        protected Joke()
+        private Joke()
         {
+            // EF Core only
         }
 
         /// <summary>
