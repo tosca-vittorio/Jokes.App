@@ -1,4 +1,5 @@
-﻿using JokesApp.Server.Domain.ValueObjects;
+﻿using System;
+using JokesApp.Server.Domain.ValueObjects;
 using JokesApp.Server.Domain.Errors;
 using JokesApp.Server.Domain.Exceptions;
 
@@ -6,10 +7,14 @@ namespace JokesApp.Server.Domain.Events
 {
     /// <summary>
     /// Evento di dominio che indica che una barzelletta ha ricevuto un "unlike".
-    /// Contiene il nuovo conteggio dei like e il timestamp dell'operazione.
+    /// Registra l'identificativo della barzelletta e il nuovo conteggio dei like
+    /// dopo l'operazione. Il timestamp dell'evento è esposto tramite
+    /// <see cref="DomainEvent.OccurredOn"/>.
     /// </summary>
-    public sealed class JokeWasUnliked : IDomainEvent
+    public sealed class JokeWasUnliked : DomainEvent
     {
+        #region Properties
+
         /// <summary>
         /// Identificativo tipizzato della barzelletta coinvolta nell'evento.
         /// </summary>
@@ -20,27 +25,49 @@ namespace JokesApp.Server.Domain.Events
         /// </summary>
         public int LikesAfterChange { get; }
 
-        /// <summary>
-        /// Timestamp UTC in cui l'evento è stato generato.
-        /// </summary>
-        public DateTime OccurredOn { get; } = DateTime.UtcNow;
+        #endregion
+
+        #region Constructors
 
         /// <summary>
         /// Crea un evento di "unlike" conforme alle regole del dominio.
         /// </summary>
+        /// <param name="jokeId">Identificatore della barzelletta.</param>
+        /// <param name="likesAfterChange">Numero totale di like dopo la rimozione.</param>
+        /// <exception cref="DomainValidationException">
+        /// Generata quando l'identificatore della barzelletta è vuoto
+        /// o il numero di like risulta negativo.
+        /// </exception>
         public JokeWasUnliked(JokeId jokeId, int likesAfterChange)
         {
             if (jokeId.IsEmpty)
-                throw new DomainValidationException(JokeErrorMessages.JokeIdEmpty);
+            {
+                throw new DomainValidationException(
+                    JokeErrorMessages.JokeIdEmpty,
+                    nameof(jokeId));
+            }
 
             if (likesAfterChange < 0)
-                throw new DomainValidationException(JokeErrorMessages.MinimumLikeOfJokeReached);
+            {
+                throw new DomainValidationException(
+                    JokeErrorMessages.MinimumLikeOfJokeReached,
+                    nameof(likesAfterChange));
+            }
 
             JokeId = jokeId;
             LikesAfterChange = likesAfterChange;
         }
 
+        #endregion
+
+        #region Overrides
+
+        /// <summary>
+        /// Rappresentazione leggibile dell'evento per log e debugging.
+        /// </summary>
         public override string ToString()
-            => $"[JokeWasUnliked] JokeId={JokeId}, Likes={LikesAfterChange}, At={OccurredOn:O}";
+            => $"[JokeWasUnliked] JokeId={JokeId}, Likes={LikesAfterChange}, OccurredOn={OccurredOn:O}";
+
+        #endregion
     }
 }

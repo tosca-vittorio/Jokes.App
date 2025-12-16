@@ -60,5 +60,26 @@
             "Email exceeds maximum length of 256.";
 
         #endregion
+
+        #region UserId errors
+
+        /// <summary>
+        /// Messaggio per indicare che l'identificativo utente è nullo o vuoto.
+        /// </summary>
+        public const string UserIdNullOrEmpty =
+            "UserId cannot be null or empty.";
+
+        /// <summary>
+        /// Messaggio per indicare che l'identificativo utente contiene caratteri non validi.
+        /// </summary>
+        public const string UserIdInvalid =
+            "UserId contains invalid characters.";
+
+        /// <summary>
+        /// Messaggio per indicare che l'identificativo utente supera la lunghezza massima consentita.
+        /// </summary>
+        public const string UserIdTooLong =
+            "UserId exceeds maximum allowed length.";
+        #endregion
     }
 }

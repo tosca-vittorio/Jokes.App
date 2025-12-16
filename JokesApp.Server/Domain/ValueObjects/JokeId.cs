@@ -1,77 +1,86 @@
-﻿using JokesApp.Server.Domain.Errors;
+﻿using System;
+using JokesApp.Server.Domain.Errors;
 using JokesApp.Server.Domain.Exceptions;
 
 namespace JokesApp.Server.Domain.ValueObjects
 {
     /// <summary>
     /// Identificatore tipizzato e immutabile per la barzelletta.
-    /// Deve rappresentare sempre un intero positivo e valido nel dominio.
+    /// Viene generato nel dominio per essere disponibile immediatamente (es. Domain Events).
     /// </summary>
+    /// <remarks>
+    /// Essendo uno <c>struct</c>, in C# esiste sempre un costruttore di default che produce
+    /// uno stato equivalente a <see cref="Empty"/> (cioè <see cref="Guid.Empty"/>).
+    /// Nel dominio non dovresti mai emettere eventi o accettare stati "vuoti" come fatto di business:
+    /// per ottenere un Id valido usa <see cref="New()"/>; per reidratazione usa <see cref="Create(Guid)"/>.
+    /// </remarks>
     public readonly record struct JokeId
     {
         #region Properties
 
         /// <summary>
-        /// Valore numerico dell'identificatore.
+        /// Valore dell'identificatore.
         /// </summary>
-        public int Value { get; }
+        public Guid Value { get; }
 
         /// <summary>
-        /// Indica se l'identificatore rappresenta uno stato non inizializzato
-        /// o non valido (0 o qualsiasi valore non positivo).
+        /// Indica se l'identificatore rappresenta uno stato non inizializzato (<see cref="Guid.Empty"/>).
         /// </summary>
-        public bool IsEmpty => Value <= 0;
+        public bool IsEmpty => Value == Guid.Empty;
 
         #endregion
 
         #region Constructors
 
         /// <summary>
-        /// Costruttore privato: nel codice applicativo la creazione dovrebbe passare
-        /// tramite <see cref="Create(int)"/> oppure tramite <see cref="Empty"/>.
-        /// Come per tutti gli struct in C#, esiste comunque un costruttore di default
-        /// che produce uno stato equivalente a <see cref="Empty"/> (Value &lt;= 0).
+        /// Costruttore privato.
+        /// La creazione nel codice applicativo deve passare da <see cref="Create(Guid)"/> o <see cref="New()"/>.
         /// </summary>
-
-        private JokeId(int value)
+        /// <param name="value">Valore dell'identificatore.</param>
+        private JokeId(Guid value)
         {
             Value = value;
         }
 
         #endregion
 
-        #region Factory
+        #region Factories
 
         /// <summary>
-        /// Crea un identificatore di barzelletta valido, garantendo che sia strettamente positivo.
+        /// Crea un identificatore valido a partire da un valore già noto (es. reidratazione da persistenza).
         /// </summary>
-        /// <param name="value">Valore numerico da utilizzare come identificatore.</param>
-        /// <returns>Un'istanza valida di <see cref="JokeId"/>.</returns>
+        /// <param name="value">Guid già noto (non deve essere <see cref="Guid.Empty"/>).</param>
+        /// <returns>Un <see cref="JokeId"/> valido.</returns>
         /// <exception cref="DomainValidationException">
-        /// Generata quando il valore è minore o uguale a zero.
+        /// Lanciata se <paramref name="value"/> è <see cref="Guid.Empty"/>.
         /// </exception>
-        public static JokeId Create(int value)
+        public static JokeId Create(Guid value)
         {
-            if (value <= 0)
+            if (value == Guid.Empty)
             {
                 throw new DomainValidationException(
-                    JokeErrorMessages.JokeIdInvalid,
+                    JokeErrorMessages.JokeIdEmpty,
                     nameof(JokeId));
             }
 
-            // At this point, the identifier is a valid domain value.
             return new JokeId(value);
         }
+
+        /// <summary>
+        /// Genera un nuovo identificatore valido per una barzelletta.
+        /// </summary>
+        /// <returns>Un <see cref="JokeId"/> valido.</returns>
+        public static JokeId New()
+            => new JokeId(Guid.NewGuid());
 
         #endregion
 
         #region Static members
 
         /// <summary>
-        /// Identificatore "vuoto", utilizzato come placeholder iniziale
-        /// (ad esempio prima che Entity Framework assegni il valore reale).
+        /// Identificatore "vuoto" (stato non inizializzato / placeholder tecnico).
         /// </summary>
-        public static JokeId Empty { get; } = new JokeId(0);
+        public static JokeId Empty { get; } = new JokeId(Guid.Empty);
 
         #endregion
 
@@ -80,6 +89,7 @@ namespace JokesApp.Server.Domain.ValueObjects
         /// <summary>
         /// Restituisce una rappresentazione testuale dell'identificatore.
         /// </summary>
+        /// <returns>Il valore <see cref="Guid"/> in formato stringa.</returns>
         public override string ToString() => Value.ToString();
 
         #endregion

@@ -1,4 +1,6 @@
-﻿namespace JokesApp.Server.Domain.Errors
+﻿using System;
+
+namespace JokesApp.Server.Domain.Errors
 {
     /// <summary>
     /// Contiene tutti i messaggi di errore relativi al dominio Joke.
@@ -39,25 +41,7 @@
 
         #endregion
 
-        #region User / Author errors
-
-        /// <summary>
-        /// Messaggio per indicare che l'identificativo utente è nullo o vuoto.
-        /// </summary>
-        public const string UserIdNullOrEmpty =
-            "UserId cannot be null or empty.";
-
-        /// <summary>
-        /// Messaggio per indicare che l'identificativo utente contiene caratteri non validi.
-        /// </summary>
-        public const string UserIdInvalid =
-            "UserId contains invalid characters.";
-
-        /// <summary>
-        /// Messaggio per indicare che l'identificativo utente supera la lunghezza massima consentita.
-        /// </summary>
-        public const string UserIdTooLong =
-            "UserId exceeds maximum allowed length.";
+        #region Author errors
 
         /// <summary>
         /// Messaggio per indicare che l'autore non può essere nullo.
@@ -82,13 +66,16 @@
         #region JokeId errors (Value Object)
 
         /// <summary>
-        /// Messaggio per indicare che il JokeId non è un intero positivo.
+        /// Messaggio per indicare che il JokeId è invalido.
+        /// Nota: nel Domain puro, con JokeId basato su Guid, l'unico caso "non valido"
+        /// è tipicamente il valore vuoto (<see cref="Guid.Empty"/>) associato al messaggio <c>JokeIdEmpty</c>.
+        /// Questo messaggio è utile soprattutto in fase di conversione/parsing di input esterni (fuori Domain).
         /// </summary>
         public const string JokeIdInvalid =
-            "JokeId must be a positive integer.";
+            "JokeId is invalid.";
 
         /// <summary>
-        /// Messaggio per indicare che il JokeId è vuoto o non valorizzato.
+        /// Messaggio per indicare che il JokeId è vuoto o non valorizzato (Guid.Empty).
         /// </summary>
         public const string JokeIdEmpty =
             "JokeId cannot be empty.";
@@ -130,6 +117,24 @@
         /// </summary>
         public const string ValueRequired =
             "A required value was missing.";
+
+        #endregion
+
+        #region Domain Event Errors
+
+        /// <summary>
+        /// Messaggio per indicare che il timestamp di creazione della barzelletta
+        /// non è valido o non impostato correttamente.
+        /// </summary>
+        public const string JokeCreatedAtInvalid =
+            "CreatedAt timestamp is invalid.";
+
+        /// <summary>
+        /// Messaggio per indicare che il timestamp di aggiornamento della barzelletta
+        /// non è valido o non impostato correttamente.
+        /// </summary>
+        public const string JokeUpdatedAtInvalid =
+            "UpdatedAt timestamp is invalid.";
 
         #endregion
     }

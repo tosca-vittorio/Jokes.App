@@ -9,10 +9,16 @@ namespace JokesApp.Server.Domain.ValueObjects
     /// </summary>
     public sealed record DisplayName
     {
+        #region Constants
+
         /// <summary>
         /// Lunghezza massima consentita per il display name.
         /// </summary>
         public const int MaxLength = 50;
+
+        #endregion
+
+        #region Properties
 
         /// <summary>
         /// Valore testuale interno del display name.
@@ -29,20 +35,30 @@ namespace JokesApp.Server.Domain.ValueObjects
         /// </summary>
         public int Length => Value.Length;
 
+        #endregion
+
+        #region Constructors
+
         /// <summary>
         /// Costruttore privato per garantire l'immutabilità
-        /// e la validazione centralizzata tramite Create().
+        /// e la validazione centralizzata tramite <see cref="Create"/>.
         /// </summary>
+        /// <param name="value">Valore testuale già validato.</param>
         private DisplayName(string value)
         {
             Value = value;
         }
+
+        #endregion
+
+        #region Factory
 
         /// <summary>
         /// Factory method che valida e crea un nuovo Value Object
         /// conforme alle regole del dominio.
         /// </summary>
         /// <param name="value">Stringa contenente il display name.</param>
+        /// <returns>Un'istanza valida di <see cref="DisplayName"/>.</returns>
         /// <exception cref="DomainValidationException">
         /// Generata se il valore è nullo, vuoto o eccede la lunghezza massima consentita.
         /// </exception>
@@ -50,29 +66,44 @@ namespace JokesApp.Server.Domain.ValueObjects
         {
             if (string.IsNullOrWhiteSpace(value))
             {
-                // Nome visuale obbligatorio
-                throw new DomainValidationException(ApplicationUserErrorMessages.DisplayNameRequired);
+                // Display name is required.
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.DisplayNameRequired,
+                    nameof(DisplayName));
             }
 
-            string v = value.Trim();
+            // Normalize input by trimming leading/trailing whitespace.
+            var trimmed = value.Trim();
 
-            if (v.Length > MaxLength)
+            if (trimmed.Length > MaxLength)
             {
-                // Lunghezza massima superata
-                throw new DomainValidationException(ApplicationUserErrorMessages.DisplayNameMaxLength);
+                // Display name exceeds allowed length.
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.DisplayNameMaxLength,
+                    nameof(DisplayName));
             }
 
-            return new DisplayName(v);
+            return new DisplayName(trimmed);
         }
+
+        #endregion
+
+        #region Static members
 
         /// <summary>
         /// Istanza vuota, utile per scenari di default, EF Core o binding iniziale.
         /// </summary>
         public static DisplayName Empty { get; } = new DisplayName(string.Empty);
 
+        #endregion
+
+        #region Overrides
+
         /// <summary>
         /// Restituisce il valore testuale del display name.
         /// </summary>
         public override string ToString() => Value;
+
+        #endregion
     }
 }

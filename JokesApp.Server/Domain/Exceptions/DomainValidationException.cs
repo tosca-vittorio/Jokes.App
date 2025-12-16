@@ -8,11 +8,15 @@ namespace JokesApp.Server.Domain.Exceptions
     /// </summary>
     public class DomainValidationException : DomainException
     {
+        #region Properties
+
         /// <summary>
         /// Nome logico del membro (proprietà, Value Object o campo) che ha
         /// causato la violazione di validazione. Può essere nullo.
         /// </summary>
         public string? MemberName { get; }
+
+        #endregion
 
         #region Constructors
 

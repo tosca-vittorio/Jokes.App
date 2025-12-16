@@ -29,7 +29,7 @@ namespace JokesApp.Server.Domain.Exceptions
 
         /// <summary>
         /// Crea una nuova istanza di <see cref="DomainException"/> con un messaggio descrittivo
-        /// e una eccezione interna che ha causato l'errore corrente.
+        /// e un'eccezione interna che ha causato l'errore corrente.
         /// </summary>
         /// <param name="message">Messaggio di errore descrittivo.</param>
         /// <param name="innerException">Eccezione che ha causato l'errore corrente.</param>

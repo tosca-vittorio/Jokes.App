@@ -96,7 +96,7 @@ namespace JokesApp.Server.Domain.ValueObjects
         #region Static members
 
         /// <summary>
-        /// Rappresenta un valore vuoto, utile come placeholder in EF Core, test o binding.
+        /// Rappresenta un valore vuoto, utile come placeholder per scenari tecnici di mapping/persistenza, test o binding.
         /// </summary>
         public static QuestionText Empty { get; } = new QuestionText(string.Empty);
 

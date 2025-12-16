@@ -1,10 +1,10 @@
-﻿using JokesApp.Server.Domain.Errors;
+﻿using System;
+using System.Collections.Generic;
+using JokesApp.Server.Domain.Errors;
 using JokesApp.Server.Domain.Events;
 using JokesApp.Server.Domain.Exceptions;
 using JokesApp.Server.Domain.ValueObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using JokesApp.Server.Domain.Primitives;
 
 namespace JokesApp.Server.Domain.Entities
 {
@@ -13,25 +13,15 @@ namespace JokesApp.Server.Domain.Entities
     /// Implementa logiche di dominio, validazione, gestione autore e generazione di eventi.
     /// Utilizza Value Objects per garantire integrità e coerenza dei dati.
     /// </summary>
-    public class Joke
+    public sealed class Joke : AggregateRoot
     {
-        #region Domain events
-
-        private readonly List<IDomainEvent> _domainEvents = new();
-
-        /// <summary>
-        /// Ritorna gli eventi di dominio attualmente registrati dall'entità.
-        /// Non vengono serializzati né mappati dal livello di persistenza.
-        /// </summary>
-        public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
-
-        #endregion
 
         #region Properties
 
         /// <summary>
         /// Identificativo tipizzato della barzelletta.
-        /// Viene generato automaticamente dal livello di persistenza al momento del salvataggio.
+        /// Viene generato nel dominio al momento della creazione, così da essere disponibile immediatamente
+        /// (es. per Domain Events). In fase di reidratazione, il valore viene impostato dalla persistenza/ORM.
         /// </summary>
         public JokeId Id { get; private set; }
 
@@ -46,7 +36,7 @@ namespace JokesApp.Server.Domain.Entities
         public AnswerText Answer { get; private set; }
 
         /// <summary>
-        /// Identificatore dell'autore della barzelletta.
+        /// Identificatore tipizzato dell'autore della barzelletta.
         /// È un Value Object che incapsula le regole di validazione del dominio.
         /// </summary>
         public UserId ApplicationUserId { get; private set; }
@@ -60,7 +50,7 @@ namespace JokesApp.Server.Domain.Entities
         /// <summary>
         /// Data e ora di creazione della barzelletta in formato UTC.
         /// </summary>
-        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; private set; }
 
         /// <summary>
         /// Data e ora dell'ultima modifica della barzelletta in formato UTC.
@@ -78,7 +68,7 @@ namespace JokesApp.Server.Domain.Entities
         #region Constructors
 
         /// <summary>
-        /// Costruttore protetto richiesto dagli strumenti di persistenza (es. EF Core).
+        /// Costruttore protetto richiesto dagli strumenti di persistenza (es. ORM/strumenti di persistenza).
         /// Non deve essere utilizzato manualmente nel codice di dominio.
         /// </summary>
         protected Joke()
@@ -94,16 +84,38 @@ namespace JokesApp.Server.Domain.Entities
         /// <param name="userId">Identificatore tipizzato dell'autore.</param>
         public Joke(QuestionText question, AnswerText answer, UserId userId)
         {
+            if (question is null || question.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    JokeErrorMessages.QuestionNullOrEmpty,
+                    nameof(question));
+            }
+
+            if (answer is null || answer.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    JokeErrorMessages.AnswerNullOrEmpty,
+                    nameof(answer));
+            }
+
+            if (userId.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.UserIdNullOrEmpty,
+                    nameof(userId));
+            }
+
             EnsureQuestionAndAnswerAreDifferent(question, answer);
 
+            Id = JokeId.New();
             Question = question;
             Answer = answer;
             ApplicationUserId = userId;
             CreatedAt = DateTime.UtcNow;
 
-            // L’Id non esiste ancora (il data layer lo genererà), quindi inseriamo un placeholder.
+            // Con Id domain-generated, l'evento "Created" deve nascere già con un identificatore reale.
             AddDomainEvent(new JokeWasCreated(
-                JokeId.Empty,
+                Id,
                 ApplicationUserId,
                 Question,
                 Answer,
@@ -112,47 +124,12 @@ namespace JokesApp.Server.Domain.Entities
 
         #endregion
 
-        #region Domain event helpers
-
-        /// <summary>
-        /// Registra un nuovo evento di dominio associato all'entità.
-        /// </summary>
-        /// <param name="domainEvent">Evento di dominio da aggiungere.</param>
-        /// <exception cref="ArgumentNullException">Generata se l'evento è nullo.</exception>
-        private void AddDomainEvent(IDomainEvent domainEvent)
-        {
-            if (domainEvent is null)
-            {
-                throw new ArgumentNullException(nameof(domainEvent));
-            }
-
-            _domainEvents.Add(domainEvent);
-        }
-
-        /// <summary>
-        /// Estrae tutti gli eventi di dominio e svuota la coda interna.
-        /// Utilizzato dal dispatcher degli eventi nel livello applicativo.
-        /// </summary>
-        /// <returns>Collezione in sola lettura degli eventi estratti.</returns>
-        public IReadOnlyCollection<IDomainEvent> PullDomainEvents()
-        {
-            var events = _domainEvents.ToList();
-            _domainEvents.Clear();
-            return events.AsReadOnly();
-        }
-
-        /// <summary>
-        /// Elimina tutti gli eventi accumulati senza restituirli.
-        /// </summary>
-        public void ClearDomainEvents() => _domainEvents.Clear();
-
-        #endregion
-
         #region Author management
 
         /// <summary>
         /// Imposta l'autore della barzelletta verificando che:
         /// - l'istanza non sia nulla;
+        /// - l'identificativo dell'autore non sia vuoto;
         /// - non sia già stato impostato un autore;
         /// - l'identificativo dell'autore corrisponda a quello previsto dal dominio.
         /// </summary>
@@ -166,12 +143,19 @@ namespace JokesApp.Server.Domain.Entities
                     nameof(author));
             }
 
+            if (author.Id.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.UserIdNullOrEmpty,
+                    nameof(author));
+            }
+
             if (Author is not null)
             {
                 throw new DomainOperationException(JokeErrorMessages.AuthorAlreadySet);
             }
 
-            if (author.Id != ApplicationUserId.Value)
+            if (!author.Id.Equals(ApplicationUserId))
             {
                 throw new DomainValidationException(
                     JokeErrorMessages.AuthorIdMismatch,
@@ -201,6 +185,29 @@ namespace JokesApp.Server.Domain.Entities
         /// <param name="answer">Nuovo testo della risposta.</param>
         public void Update(UserId userId, QuestionText question, AnswerText answer)
         {
+            EnsureIdIsInitialized();
+
+            if (question is null || question.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    JokeErrorMessages.QuestionNullOrEmpty,
+                    nameof(question));
+            }
+
+            if (answer is null || answer.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    JokeErrorMessages.AnswerNullOrEmpty,
+                    nameof(answer));
+            }
+
+            if (userId.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.UserIdNullOrEmpty,
+                    nameof(userId));
+            }
+
             if (!IsAuthoredBy(userId))
             {
                 throw new UnauthorizedDomainOperationException(JokeErrorMessages.UpdateNotAllowed);
@@ -225,6 +232,8 @@ namespace JokesApp.Server.Domain.Entities
         /// </summary>
         public void AddLike()
         {
+            EnsureIdIsInitialized();
+
             if (Likes == int.MaxValue)
             {
                 throw new DomainOperationException(JokeErrorMessages.MaximumLikeOfJokeReached);
@@ -238,11 +247,13 @@ namespace JokesApp.Server.Domain.Entities
         }
 
         /// <summary>
-        /// Decrementa il numero di like garantendo che non scenda sotto zero.
-        /// Genera un evento di dislike.
+        /// Decrementa il numero di like garantendo che non si scenda sotto zero.
+        /// Genera un evento di dominio <see cref="JokeWasUnliked"/>.
         /// </summary>
         public void RemoveLike()
         {
+            EnsureIdIsInitialized();
+
             if (Likes == 0)
             {
                 throw new DomainOperationException(JokeErrorMessages.MinimumLikeOfJokeReached);
@@ -269,7 +280,22 @@ namespace JokesApp.Server.Domain.Entities
             if (string.Equals(q.Value, a.Value, StringComparison.OrdinalIgnoreCase))
             {
                 throw new DomainValidationException(
-                    JokeErrorMessages.QuestionAndAnswerCannotMatch);
+                    JokeErrorMessages.QuestionAndAnswerCannotMatch,
+                    nameof(Question));
+            }
+        }
+
+        /// <summary>
+        /// Verifica che l'entità abbia un identificatore valido.
+        /// Utile come guard interna per evitare l'uso "accidentale" di istanze non inizializzate (Id vuoto).
+        /// </summary>
+        private void EnsureIdIsInitialized()
+        {
+            if (Id.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    JokeErrorMessages.JokeIdEmpty,
+                    nameof(Id));
             }
         }
 
@@ -279,6 +305,7 @@ namespace JokesApp.Server.Domain.Entities
         /// </summary>
         public void ValidateIntegrity()
         {
+            EnsureIdIsInitialized();
             EnsureQuestionAndAnswerAreDifferent(Question, Answer);
         }
 

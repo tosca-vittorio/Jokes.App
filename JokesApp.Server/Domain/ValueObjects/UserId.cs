@@ -6,7 +6,7 @@ namespace JokesApp.Server.Domain.ValueObjects
     /// <summary>
     /// Identificatore tipizzato dell'utente, conforme alle regole del dominio
     /// e ai vincoli di lunghezza di Identity Core.
-    /// Immutabile, auto-validante e non può rappresentare un valore invalido.
+    /// Immutabile, Auto-validante se creato tramite Create; supporta uno stato tecnico Empty per placeholder.
     /// </summary>
     public readonly record struct UserId
     {
@@ -64,7 +64,7 @@ namespace JokesApp.Server.Domain.ValueObjects
             if (string.IsNullOrWhiteSpace(value))
             {
                 throw new DomainValidationException(
-                    JokeErrorMessages.UserIdNullOrEmpty,
+                    ApplicationUserErrorMessages.UserIdNullOrEmpty,
                     nameof(UserId));
             }
 
@@ -74,7 +74,7 @@ namespace JokesApp.Server.Domain.ValueObjects
             if (trimmed.Length > MaxLength)
             {
                 throw new DomainValidationException(
-                    JokeErrorMessages.UserIdTooLong,
+                    ApplicationUserErrorMessages.UserIdTooLong,
                     nameof(UserId));
             }
 
@@ -88,7 +88,7 @@ namespace JokesApp.Server.Domain.ValueObjects
 
         /// <summary>
         /// Rappresenta un identificativo vuoto o non inizializzato.
-        /// Usato come placeholder per EF Core e scenari di default.
+        /// Usato come placeholder per scenari tecnici di mapping/persistenza e scenari di default.
         /// </summary>
         public static UserId Empty { get; } = new UserId(string.Empty);
 
@@ -99,7 +99,7 @@ namespace JokesApp.Server.Domain.ValueObjects
         /// <summary>
         /// Restituisce la rappresentazione testuale dell'identificativo utente.
         /// </summary>
-        public override string ToString() => Value;
+        public override string ToString() => Value ?? string.Empty;
 
         #endregion
     }

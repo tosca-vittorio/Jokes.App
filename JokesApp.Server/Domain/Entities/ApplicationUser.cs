@@ -1,168 +1,227 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
-using JokesApp.Server.Domain.Attributes;
+using JokesApp.Server.Domain.ValueObjects;
 using JokesApp.Server.Domain.Errors;
-
+using JokesApp.Server.Domain.Exceptions;
 
 
 namespace JokesApp.Server.Domain.Entities
 {
-    public class ApplicationUser : IdentityUser
+    /// <summary>
+    /// Entità di dominio che rappresenta un utente dell'applicazione.
+    /// Non dipende da ASP.NET Identity, da DataAnnotations o dalla serializzazione.
+    /// Utilizza Value Object per garantire le regole di validazione.
+    /// </summary>
+    public class ApplicationUser
     {
-        // Nome visuale dell'utente, inizializzato a string.Empty per evitare null.
-        private string _displayName = string.Empty;
+        #region Properties
 
-        [MaxLength(50, ErrorMessage = ApplicationUserErrorMessages.DisplayNameMaxLength)]
-        public string DisplayName
-        {
-            get => _displayName;
-            private set
-            {
-                if (_displayName != value?.Trim())
-                {
-                    _displayName = value?.Trim() ?? string.Empty;
-                    UpdatedAt = DateTime.UtcNow; // Aggiornamento automatico
-                }
-            }
-        }
+        /// <summary>
+        /// Identificativo tipizzato dell'utente.
+        /// </summary>
+        public UserId Id { get; private set; }
 
-        // URL dell'immagine profilo dell'utente.
-        // Opzionale, può essere null.
-        private string? _avatarUrl;
+        /// <summary>
+        /// Nome visuale mostrato all'interno dell'applicazione.
+        /// </summary>
+        public DisplayName DisplayName { get; private set; }
 
-        [MaxLength(2048, ErrorMessage = ApplicationUserErrorMessages.AvatarUrlMaxLength)]
-        [Url(ErrorMessage = ApplicationUserErrorMessages.AvatarUrlInvalid)]
-        public string? AvatarUrl
-        {
-            get => _avatarUrl;
-            private set
-            {
-                if (_avatarUrl != value)
-                {
-                    _avatarUrl = value;
-                    UpdatedAt = DateTime.UtcNow;
-                }
-            }
-        }
+        /// <summary>
+        /// URL dell'avatar dell'utente (opzionale).
+        /// Usa <see cref="AvatarUrl.Empty"/> per rappresentare l'assenza di avatar.
+        /// </summary>
+        public AvatarUrl AvatarUrl { get; private set; }
 
-        // Data di creazione dell'account (UTC).
+        /// <summary>
+        /// Indirizzo email dell'utente.
+        /// </summary>
+        public EmailAddress Email { get; private set; }
+
+        /// <summary>
+        /// Data di creazione dell'account (UTC).
+        /// </summary>
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
-        // Data di ultima modifica del profilo (UTC).
-        public DateTime? UpdatedAt { get; set; }
+        /// <summary>
+        /// Data di ultima modifica del profilo (UTC).
+        /// Null se il profilo non è mai stato aggiornato.
+        /// </summary>
+        public DateTime? UpdatedAt { get; private set; }
 
-        [Required(ErrorMessage = ApplicationUserErrorMessages.EmailRequired)]
-        [CustomEmail(ErrorMessage = ApplicationUserErrorMessages.EmailInvalid)]
-        [MaxLength(256)]
-        public override string? Email
+        /// <summary>
+        /// Collezione delle barzellette create dall'utente.
+        /// Relazione uno-a-molti con <see cref="Joke"/>.
+        /// </summary>
+        public ICollection<Joke> Jokes { get; private set; } = new List<Joke>();
+
+        #endregion
+
+        #region Constructors
+
+        /// <summary>
+        /// Costruttore protetto richiesto dagli strumenti di persistenza (es. EF Core).
+        /// Non deve essere utilizzato direttamente nel codice di dominio.
+        /// </summary>
+        protected ApplicationUser()
         {
-            get => base.Email;
-            set
+            Id = UserId.Empty;
+            DisplayName = DisplayName.Empty;
+            AvatarUrl = AvatarUrl.Empty;
+            Email = EmailAddress.Empty;
+            // CreatedAt è inizializzato tramite l'inizializzatore della proprietà.
+        }
+
+        /// <summary>
+        /// Costruttore principale del dominio per la creazione di un nuovo utente.
+        /// I Value Object garantiscono tutte le regole di validazione.
+        /// </summary>
+        /// <param name="id">Identificatore tipizzato dell'utente.</param>
+        /// <param name="displayName">Nome visuale valido.</param>
+        /// <param name="email">Indirizzo email valido.</param>
+        /// <param name="avatarUrl">
+        /// URL dell'avatar; può essere <see cref="AvatarUrl.Empty"/> per indicare nessun avatar.
+        /// </param>
+        public ApplicationUser(UserId id, DisplayName displayName, EmailAddress email, AvatarUrl avatarUrl)
+        {
+            if (id.IsEmpty)
             {
-                var trimmed = value?.Trim() ?? "";
-
-                // 1) Non può essere vuota → errore Required
-                if (string.IsNullOrWhiteSpace(trimmed))
-                    throw new ArgumentException(ApplicationUserErrorMessages.EmailInvalid);
-
-                // 2) Non può contenere spazi interni
-                if (trimmed.Contains(" "))
-                    throw new ArgumentException(ApplicationUserErrorMessages.EmailInvalid);
-
-                // 3) Lunghezza massima
-                if (trimmed.Length > 256)
-                    throw new ArgumentException(ApplicationUserErrorMessages.EmailTooLong);
-
-                // 4) Validazione formato tramite la regex statica
-                if (!CustomEmailAttribute.IsValidStatic(trimmed))
-                    throw new ArgumentException(ApplicationUserErrorMessages.EmailInvalid);
-
-                // Se tutto ok, applica
-                base.Email = trimmed;
-                UpdatedAt = DateTime.UtcNow;
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.UserIdNullOrEmpty,
+                    nameof(id));
             }
+
+            if (displayName.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.DisplayNameRequired,
+                    nameof(displayName));
+            }
+
+            if (email.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.EmailRequired,
+                    nameof(email));
+            }
+
+            // AvatarUrl può essere Empty (assenza avatar), quindi è ammesso.
+            Id = id;
+            DisplayName = displayName;
+            Email = email;
+            AvatarUrl = avatarUrl;
         }
 
+        #endregion
 
-        private void ValidateDisplayName(string? displayName)
+        #region Domain behavior
+
+        /// <summary>
+        /// Verifica che l'entità si trovi in uno stato consistente rispetto
+        /// alle principali invarianti di dominio (Id, DisplayName, Email).
+        /// Può essere utilizzato in scenari di import, test o debug.
+        /// </summary>
+        /// <exception cref="DomainValidationException">
+        /// Generata quando una delle invarianti di dominio non è rispettata.
+        /// </exception>
+        public void ValidateIntegrity()
         {
-            if (string.IsNullOrWhiteSpace(displayName))
-                throw new ArgumentException(ApplicationUserErrorMessages.DisplayNameRequired, nameof(displayName));
+            // L'identificativo dell'utente non deve essere vuoto.
+            if (Id.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.UserIdNullOrEmpty,
+                    nameof(Id));
+            }
 
-            if (displayName.Length > 50)
-                throw new ArgumentException(ApplicationUserErrorMessages.DisplayNameMaxLength, nameof(displayName));
+            // Il display name non deve essere vuoto.
+            if (DisplayName.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.DisplayNameRequired,
+                    nameof(DisplayName));
+            }
+
+            // L'email non deve essere vuota.
+            if (Email.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.EmailRequired,
+                    nameof(Email));
+            }
+
+            // AvatarUrl può essere vuoto (AvatarUrl.Empty) per indicare assenza di avatar.
         }
 
-        private static void ValidateAvatarUrl(string? avatarUrl)
-        {
-            if (avatarUrl is null)
-                return; // opzionale
-
-            if (avatarUrl.Length > 2048)
-                throw new ArgumentException(ApplicationUserErrorMessages.AvatarUrlMaxLength, nameof(avatarUrl));
-
-            // Se vuoi, puoi anche aggiungere un controllo semantico:
-            // if (!Uri.IsWellFormedUriString(avatarUrl, UriKind.Absolute))
-            //    throw new ArgumentException(ApplicationUserErrorMessages.AvatarUrlInvalid, nameof(avatarUrl));
-        }
-
+        /// <summary>
+        /// Aggiorna il profilo dell'utente (display name, avatar, ed eventualmente email).
+        /// Le regole di validazione sono demandate ai Value Object.
+        /// </summary>
+        /// <param name="displayName">Nuovo display name.</param>
+        /// <param name="avatarUrl">Nuovo avatar (o <see cref="AvatarUrl.Empty"/>).</param>
+        /// <param name="email">
+        /// Nuova email opzionale. Se null, l'email attuale non viene modificata.
+        /// </param>
         public void UpdateProfile(
-        string displayName,
-        string? avatarUrl = null,
-        string? email = null)
+        DisplayName displayName,
+        AvatarUrl avatarUrl,
+        EmailAddress? email = null)
         {
-            // Normalizzazione
-            var name = displayName?.Trim();
-            var avatar = avatarUrl?.Trim();
-            var mail = email?.Trim();
+            // DisplayName è obbligatorio nel dominio: vietato portarlo a Empty.
+            if (displayName.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.DisplayNameRequired,
+                    nameof(displayName));
+            }
 
-            // Validazione dominio
-            ValidateDisplayName(name);
-            ValidateAvatarUrl(avatar);
+            // Email è obbligatoria nel dominio; se fornita, non può essere Empty.
+            if (email is not null && email.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.EmailRequired,
+                    nameof(email));
+            }
 
-            // Applicazione cambiamenti
-            DisplayName = name!;
-            AvatarUrl = avatar;
+            DisplayName = displayName;
+            AvatarUrl = avatarUrl;
 
-            if (mail is not null)
-                Email = mail; // Il setter valida già tutto
+            if (email is not null)
+            {
+                Email = email;
+            }
 
             UpdatedAt = DateTime.UtcNow;
         }
 
-
-        public void ChangeEmail(string newEmail)
+        /// <summary>
+        /// Cambia l'indirizzo email dell'utente.
+        /// </summary>
+        /// <param name="newEmail">Nuova email già validata a livello di Value Object.</param>
+        public void ChangeEmail(EmailAddress newEmail)
         {
-            if (string.IsNullOrWhiteSpace(newEmail))
-                throw new ArgumentException(ApplicationUserErrorMessages.EmailRequired);
+            if (newEmail.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.EmailRequired,
+                    nameof(newEmail));
+            }
 
-            Email = newEmail.Trim(); // Il setter fa tutta la validazione
-
+            Email = newEmail;
             UpdatedAt = DateTime.UtcNow;
         }
 
-
-        public void SetAvatar(string? avatarUrl)
+        /// <summary>
+        /// Imposta o aggiorna l'avatar dell'utente.
+        /// </summary>
+        /// <param name="avatarUrl">
+        /// Nuovo avatar; usa <see cref="AvatarUrl.Empty"/> per rimuoverlo.
+        /// </param>
+        public void SetAvatar(AvatarUrl avatarUrl)
         {
-            var avatar = avatarUrl?.Trim();
-            ValidateAvatarUrl(avatar);
-            AvatarUrl = avatar;
+            AvatarUrl = avatarUrl;
             UpdatedAt = DateTime.UtcNow;
         }
 
-
-
-        [JsonIgnore]
-        public override string? PasswordHash { get; set; }
-
-        [JsonIgnore]
-        public override string? SecurityStamp { get; set; }
-
-        // Collezione di barzellette associate all'utente:
-        //  - Definisce una relazione uno-a-molti tra ApplicationUser e Joke.
-        public  ICollection<Joke> Jokes { get; set; } = new List<Joke>();
-
+        #endregion
     }
 }

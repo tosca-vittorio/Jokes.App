@@ -97,7 +97,7 @@ namespace JokesApp.Server.Domain.ValueObjects
         #region Static members
 
         /// <summary>
-        /// Istanza vuota, utile per EF Core, test o scenari di binding iniziale.
+        /// Istanza vuota, utile per scenari tecnici di mapping/persistenza, test o binding iniziale.
         /// </summary>
         public static AnswerText Empty { get; } = new AnswerText(string.Empty);
 
