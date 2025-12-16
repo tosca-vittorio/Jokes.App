@@ -82,20 +82,24 @@ namespace JokesApp.Server.Domain.ValueObjects
             if (string.IsNullOrWhiteSpace(value))
             {
                 // Nome visuale obbligatorio
-                throw new DomainValidationException(ApplicationUserErrorMessages.DisplayNameRequired);
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.DisplayNameRequired,
+                    nameof(DisplayName));
             }
-
+        
             // Normalize input by trimming leading/trailing whitespace.
             string v = value.Trim();
-
+        
             if (v.Length > MaxLength)
             {
                 // Lunghezza massima superata
-                throw new DomainValidationException(ApplicationUserErrorMessages.DisplayNameMaxLength);
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.DisplayNameMaxLength,
+                    nameof(DisplayName));
             }
-
+        
             return new DisplayName(v);
-        }
+        } 
 
         /// <summary>
         /// Istanza vuota, utile per scenari di default, EF Core o binding iniziale.
@@ -136,7 +140,9 @@ Caratteristiche principali:
    if (string.IsNullOrWhiteSpace(value))
    {
        throw new DomainValidationException(
-           ApplicationUserErrorMessages.DisplayNameRequired);
+        ApplicationUserErrorMessages.DisplayNameRequired,
+        nameof(DisplayName));
+
    }
    ```
 
@@ -161,10 +167,11 @@ Caratteristiche principali:
 
    ```csharp
    if (v.Length > MaxLength)
-   {
-       throw new DomainValidationException(
-           ApplicationUserErrorMessages.DisplayNameMaxLength);
-   }
+  {
+    throw new DomainValidationException(
+        ApplicationUserErrorMessages.DisplayNameMaxLength,
+        nameof(DisplayName));
+  }
    ```
 
    Il display name non può superare `MaxLength` (50 caratteri).

@@ -59,7 +59,7 @@ namespace JokesApp.Server.Domain.Exceptions
 
         /// <summary>
         /// Crea una nuova istanza di <see cref="DomainException"/> con un messaggio descrittivo
-        /// e una eccezione interna che ha causato l'errore corrente.
+        /// e un'eccezione interna che ha causato l'errore corrente.
         /// </summary>
         /// <param name="message">Messaggio di errore descrittivo.</param>
         /// <param name="innerException">Eccezione che ha causato l'errore corrente.</param>
@@ -100,8 +100,7 @@ La progettazione di `DomainException` risponde a obiettivi precisi:
      * costruttore vuoto,
      * costruttore con `message`,
      * costruttore con `message` + `innerException`.
-   * Questo rende naturale il wrapping di eccezioni tecniche quando necessario, preservando
-     la stack trace originale.
+   * Questo rende naturale, nei layer esterni (Application/Infrastructure), mantenere un’eventuale `innerException` quando si traduce un errore tecnico in un errore con semantica di dominio, preservando la stack trace
 
 4. **Esplicitare il ruolo semantico nel dominio**
 
@@ -179,12 +178,13 @@ Esempio tipico a livello Application/API:
 ```csharp
 try
 {
-    // Chiamata ad un metodo del Domain Layer che può lanciare DomainException
+    // Invocazione di un caso d’uso / handler / servizio applicativo che coinvolge il dominio.
+    // Il dominio può lanciare DomainException o una sua derivata (es. DomainValidationException).
     jokeService.LikeJoke(jokeId, currentUserId);
 }
 catch (DomainException domainEx)
 {
-    // Map domain error to a consistent application / HTTP error response
+    // Mapping coerente dell’errore di dominio verso la risposta applicativa (HTTP/UI/log, fuori dal dominio).
     // (es: 400, 403, 409, a seconda del tipo concreto di eccezione).
 }
 ```
@@ -202,8 +202,8 @@ In questo modo:
 Quando si definiscono nuove eccezioni di dominio, la regola generale è:
 
 1. **Derivare sempre da `DomainException`** (direttamente o tramite altre sottoclassi di dominio).
-2. **Dare un nome che esprima chiaramente il contesto**
-   – es: `JokeCreationDomainException`, `UserProfileDomainException`, ecc. (solo se servono davvero).
+2. **Dare un nome che esprima chiaramente il contesto**: usare una nomenclatura coerente che richiami l’area/aggregate coinvolto e il tipo di violazione.
+   – es: `JokeCreationDomainException`, `UserProfileDomainException`, ecc.
 3. **Mantenere la logica di dominio nel dominio**
    – l’eccezione non deve contenere logica tecnica, ma solo dati essenziali per descrivere
    la violazione (messaggio, eventuali nomi di membri, ecc.).

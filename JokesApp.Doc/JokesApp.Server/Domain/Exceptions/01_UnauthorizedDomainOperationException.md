@@ -196,27 +196,6 @@ In questo caso:
 * ma l’utente corrente non rispetta la regola di autorizzazione definita dal dominio
   (solo il proprietario può modificare).
 
-**2. Wrapping di eccezione tecnica con semantica di autorizzazione**
-
-```csharp
-try
-{
-    _authorizationService.EnsureUserCanDeleteJoke(currentUserId, jokeId);
-}
-catch (Exception ex)
-{
-    throw new UnauthorizedDomainOperationException(
-        "The current user is not allowed to delete this joke.",
-        ex
-    );
-}
-```
-
-Qui l’errore originario può provenire da un servizio o componente di authorization
-(esterno o infrastrutturale); il dominio lo traduce in un fallimento di tipo
-“operazione di dominio non autorizzata”, mantenendo però i dettagli tecnici
-nel `innerException` per scopi di logging/diagnostica.
-
 ---
 
 ## 1.21 Coerenza con DDD, Clean Architecture e SOLID

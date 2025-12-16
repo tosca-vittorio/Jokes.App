@@ -2,7 +2,7 @@
 
 ### *Messaggi di errore del dominio Joke*
 
---- 
+---
 
 ## 3.1 Ruolo nel contesto del Domain Layer
 
@@ -11,9 +11,11 @@ Il dominio di **Joke** è caratterizzato da diverse regole di validazione e di c
 - vincoli sui testi di domanda e risposta (Question/Answer),
 - vincoli sull’identità dell’autore associato alla joke,
 - vincoli sull’identificativo della joke (JokeId),
-- regole di business su like/unlike, modifiche, coerenza tra campi, ecc.
+- regole di business su like/unlike, modifiche, coerenza tra campi, ecc.,
+- vincoli sui **timestamp** associati agli eventi di dominio (creazione, aggiornamento).
 
-Per evitare di spargere stringhe di errore “magiche” (`"Question cannot be null or empty"`, …)
+Per evitare di spargere stringhe di errore “magiche”
+(`"Question cannot be null or empty"`, `"CreatedAt timestamp is invalid."`, …)
 all’interno di Value Object, entità ed eventi, è stato introdotto un **contenitore centralizzato**
 di messaggi di errore specifici del sottodominio Joke: `JokeErrorMessages`.
 
@@ -28,13 +30,16 @@ Questi messaggi vengono utilizzati da:
 
 - **Value Object** (es. `QuestionText`, `AnswerText`, `JokeId`),
 - **entità / aggregate** (es. `Joke`),
-- eventuali **domain events** o **domain services** che applicano regole di business sul mondo delle joke.
+- **domain events** (es. `JokeWasCreated`, `JokeWasUpdated`),
+- eventuali **domain services** che applicano regole di business sul mondo delle joke.
 
 ---
 
 ## 3.2 Definizione della classe
 
 ```csharp
+using System;
+
 namespace JokesApp.Server.Domain.Errors
 {
     /// <summary>
@@ -101,13 +106,16 @@ namespace JokesApp.Server.Domain.Errors
         #region JokeId errors (Value Object)
 
         /// <summary>
-        /// Messaggio per indicare che il JokeId non è un intero positivo.
+        /// Messaggio per indicare che il JokeId è invalido.
+        /// Nota: nel Domain puro, con JokeId basato su Guid, l'unico caso "non valido"
+        /// è tipicamente il valore vuoto (<see cref="Guid.Empty"/>) associato al messaggio <c>JokeIdEmpty</c>.
+        /// Questo messaggio è utile soprattutto in fase di conversione/parsing di input esterni (fuori Domain).
         /// </summary>
         public const string JokeIdInvalid =
-            "JokeId must be a positive integer.";
+            "JokeId is invalid.";
 
         /// <summary>
-        /// Messaggio per indicare che il JokeId è vuoto o non valorizzato.
+        /// Messaggio per indicare che il JokeId è vuoto o non valorizzato (Guid.Empty).
         /// </summary>
         public const string JokeIdEmpty =
             "JokeId cannot be empty.";
@@ -151,6 +159,24 @@ namespace JokesApp.Server.Domain.Errors
             "A required value was missing.";
 
         #endregion
+
+        #region Domain Event Errors
+
+        /// <summary>
+        /// Messaggio per indicare che il timestamp di creazione della barzelletta
+        /// non è valido o non impostato correttamente.
+        /// </summary>
+        public const string JokeCreatedAtInvalid =
+            "CreatedAt timestamp is invalid.";
+
+        /// <summary>
+        /// Messaggio per indicare che il timestamp di aggiornamento della barzelletta
+        /// non è valido o non impostato correttamente.
+        /// </summary>
+        public const string JokeUpdatedAtInvalid =
+            "UpdatedAt timestamp is invalid.";
+
+        #endregion
     }
 }
 ```
@@ -185,7 +211,9 @@ L’introduzione di `JokeErrorMessages` risponde a diversi obiettivi:
    * quali vincoli esistono su Question/Answer,
    * quali vincoli esistono sull’autore (Author) della joke,
    * come è inteso JokeId nel dominio,
-   * quali regole di business governano like, min/max, update, coerenza tra campi.
+   * quali regole di business governano like, min/max, update, coerenza tra campi,
+   * quali vincoli esistono sui timestamp veicolati dai Domain Events (CreatedAt/UpdatedAt).
+
 
    Questo file diventa quasi una **mappa testuale** delle regole di dominio per la joke.
 
@@ -234,8 +262,11 @@ La classe è organizzata in blocchi logici:
   * `UpdateNotAllowed`
 
 * **Generic**
-
   * `ValueRequired`
+
+* **Domain Event Errors**
+  * `JokeCreatedAtInvalid`
+  * `JokeUpdatedAtInvalid`
 
 Questa suddivisione per region:
 
@@ -299,16 +330,23 @@ public void SetAuthor(ApplicationUser author)
 **3. Regole su JokeId (Value Object)**
 
 ```csharp
-public static JokeId Create(int value)
+public static JokeId Create(string? value)
 {
-    if (value <= 0)
+    if (!Guid.TryParse(value, out var guid))
     {
         throw new DomainValidationException(
             JokeErrorMessages.JokeIdInvalid);
     }
 
-    return new JokeId(value);
+    if (guid == Guid.Empty)
+    {
+        throw new DomainValidationException(
+            JokeErrorMessages.JokeIdEmpty);
+    }
+
+    return new JokeId(guid);
 }
+
 ```
 
 **4. Violazioni di regole di business (like/unlike, update)**
@@ -399,7 +437,9 @@ public void Update(UserId userId, QuestionText question, AnswerText answer)
 Nel momento in cui il dominio di Joke si arricchirà di nuove regole, l’estensione di
 `JokeErrorMessages` seguirà poche regole semplici:
 
-* aggiungere nuove costanti nella **region corretta** (Question/Answer/Author/JokeId/Domain rules/Generic),
+* aggiungere nuove costanti nella **region corretta**
+  (Question/Answer/Author/JokeId/Domain rules/Generic/Domain Event Errors),
+
 * mantenere la **nomenclatura coerente**:
 
   * prefissi significativi (`Question*`, `Answer*`, …),

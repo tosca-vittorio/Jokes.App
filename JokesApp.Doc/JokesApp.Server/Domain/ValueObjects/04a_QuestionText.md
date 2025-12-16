@@ -129,7 +129,7 @@ namespace JokesApp.Server.Domain.ValueObjects
         #region Static members
 
         /// <summary>
-        /// Rappresenta un valore vuoto, utile come placeholder in EF Core, test o binding.
+        /// Rappresenta un valore vuoto, utile come placeholder per scenari tecnici di mapping/persistenza, test o binding.
         /// </summary>
         public static QuestionText Empty { get; } = new QuestionText(string.Empty);
 
@@ -155,7 +155,7 @@ Elementi chiave:
 * costante `MaxLength` → definisce l’invariante di lunghezza massima (200 caratteri);
 * metodo statico `Create` → unica porta di ingresso per creare istanze valide;
 * uso di `DomainValidationException` + `JokeErrorMessages` → integrazione completa con il sistema di errori di dominio;
-* membro statico `Empty` → sentinel/placeholder controllato, utile in scenari particolari (EF, binding, test).
+* membro statico `Empty` → sentinel/placeholder controllato, utile in scenari particolari (mapping/persistenza, binding, test).
 
 ---
 
@@ -254,7 +254,7 @@ Questo rappresenta una istanza “vuota” deliberatamente creata **bypassando**
 di validazione (costruttore privato), ma controllata:
 
 * è utile come **placeholder** in casi in cui hai bisogno di un valore di default
-  (es. EF Core, binding, test),
+  (es. mapping/persistenza, binding, test),
 * non viene generata tramite `Create`, per non confondere il concetto di “istanza valida
   secondo il dominio” con quello di “istanza tecnica di comodo”.
 

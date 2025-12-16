@@ -6,19 +6,19 @@
 
 ## 4.17 Ruolo nel dominio
 
-Nel sottodominio **Joke**, l’identificatore della barzelletta non è gestito come un semplice `int`,
+Nel sottodominio **Joke**, l’identificatore della barzelletta non è gestito come un semplice `Guid`,
 ma come un **Value Object tipizzato**: `JokeId`.
 
 L’obiettivo è duplice:
 
-- distinguere chiaramente, a livello di tipo, un “identificatore di Joke” da un qualsiasi `int`
-  utilizzato per altri scopi;
+- distinguere chiaramente, a livello di tipo, un “identificatore di Joke” da un qualsiasi `Guid`
+  utilizzizzato per altri scopi;
 - garantire che ogni identificatore che circola nel **Domain Layer** rispetti gli **invarianti**
-  stabiliti dal modello (in questo caso: deve essere un intero strettamente positivo).
+  stabiliti dal modello (in questo caso: deve essere un Guid tipizzato, non deve essere Guid.Empty e generato nel dominio).
 
 In questo modo:
 
-- si riducono gli errori dovuti a scambi di parametri (`int` usati in modo invertito o errato),
+- si riducono gli errori dovuti a scambi di parametri (`Guid` usati in modo invertito o errato),
 - si rende più espressivo il codice (una firma con `JokeId` comunica immediatamente l’intento),
 - si separano in modo netto le scelte di persistenza (PK nel database) dalla rappresentazione
   concettuale nel dominio.
@@ -28,6 +28,7 @@ In questo modo:
 ## 4.18 Definizione della struttura
 
 ```csharp
+using System;
 using JokesApp.Server.Domain.Errors;
 using JokesApp.Server.Domain.Exceptions;
 
@@ -35,73 +36,82 @@ namespace JokesApp.Server.Domain.ValueObjects
 {
     /// <summary>
     /// Identificatore tipizzato e immutabile per la barzelletta.
-    /// Deve rappresentare sempre un intero positivo e valido nel dominio.
+    /// Viene generato nel dominio per essere disponibile immediatamente (es. Domain Events).
     /// </summary>
+    /// <remarks>
+    /// Essendo uno <c>struct</c>, in C# esiste sempre un costruttore di default che produce
+    /// uno stato equivalente a <see cref="Empty"/> (cioè <see cref="Guid.Empty"/>).
+    /// Nel dominio non dovresti mai emettere eventi o accettare stati "vuoti" come fatto di business:
+    /// per ottenere un Id valido usa <see cref="New()"/>; per reidratazione usa <see cref="Create(Guid)"/>.
+    /// </remarks>
     public readonly record struct JokeId
     {
         #region Properties
 
         /// <summary>
-        /// Valore numerico dell'identificatore.
+        /// Valore dell'identificatore.
         /// </summary>
-        public int Value { get; }
+        public Guid Value { get; }
 
         /// <summary>
-        /// Indica se l'identificatore rappresenta uno stato non inizializzato
-        /// o non valido (0 o qualsiasi valore non positivo).
+        /// Indica se l'identificatore rappresenta uno stato non inizializzato (<see cref="Guid.Empty"/>).
         /// </summary>
-        public bool IsEmpty => Value <= 0;
+        public bool IsEmpty => Value == Guid.Empty;
 
         #endregion
 
         #region Constructors
 
         /// <summary>
-        /// Costruttore privato: nel codice applicativo la creazione dovrebbe passare
-        /// tramite <see cref="Create(int)"/> oppure tramite <see cref="Empty"/>.
-        /// Come per tutti gli struct in C#, esiste comunque un costruttore di default
-        /// che produce uno stato equivalente a <see cref="Empty"/> (Value &lt;= 0).
+        /// Costruttore privato.
+        /// La creazione nel codice applicativo deve passare da <see cref="Create(Guid)"/> o <see cref="New()"/>.
         /// </summary>
-        
-        private JokeId(int value)
+        /// <param name="value">Valore dell'identificatore.</param>
+        private JokeId(Guid value)
         {
             Value = value;
         }
 
         #endregion
 
-        #region Factory
+        #region Factories
 
         /// <summary>
-        /// Crea un identificatore di barzelletta valido, garantendo che sia strettamente positivo.
+        /// Crea un identificatore valido a partire da un valore già noto (es. reidratazione da persistenza).
         /// </summary>
-        /// <param name="value">Valore numerico da utilizzare come identificatore.</param>
-        /// <returns>Un'istanza valida di <see cref="JokeId"/>.</returns>
+        /// <param name="value">Guid già noto (non deve essere <see cref="Guid.Empty"/>).</param>
+        /// <returns>Un <see cref="JokeId"/> valido.</returns>
         /// <exception cref="DomainValidationException">
-        /// Generata quando il valore è minore o uguale a zero.
+        /// Lanciata se <paramref name="value"/> è <see cref="Guid.Empty"/>.
         /// </exception>
-        public static JokeId Create(int value)
+        public static JokeId Create(Guid value)
         {
-            if (value <= 0)
+            if (value == Guid.Empty)
             {
                 throw new DomainValidationException(
-                    JokeErrorMessages.JokeIdInvalid,
+                    JokeErrorMessages.JokeIdEmpty,
                     nameof(JokeId));
             }
 
-            // At this point, the identifier is a valid domain value.
             return new JokeId(value);
         }
+
+
+        /// <summary>
+        /// Genera un nuovo identificatore valido per una barzelletta.
+        /// </summary>
+        /// <returns>Un <see cref="JokeId"/> valido.</returns>
+        public static JokeId New()
+            => new JokeId(Guid.NewGuid());
 
         #endregion
 
         #region Static members
 
         /// <summary>
-        /// Identificatore "vuoto", utilizzato come placeholder iniziale
-        /// (ad esempio prima che Entity Framework assegni il valore reale).
+        /// Identificatore "vuoto" (stato non inizializzato / placeholder tecnico).
         /// </summary>
-        public static JokeId Empty { get; } = new JokeId(0);
+        public static JokeId Empty { get; } = new JokeId(Guid.Empty);
 
         #endregion
 
@@ -110,6 +120,7 @@ namespace JokesApp.Server.Domain.ValueObjects
         /// <summary>
         /// Restituisce una rappresentazione testuale dell'identificatore.
         /// </summary>
+        /// <returns>Il valore <see cref="Guid"/> in formato stringa.</returns>
         public override string ToString() => Value.ToString();
 
         #endregion
@@ -118,17 +129,20 @@ namespace JokesApp.Server.Domain.ValueObjects
 ```
 
 > 🔎 Nota sul costruttore di default (struct)
-> JokeId è implementato come readonly record struct. Questo implica che, oltre al costruttore privato usato internamente, esiste anche il costruttore di default di C# (default(JokeId) / new JokeId()), che inizializza Value a 0.
-> Nel modello di dominio, qualsiasi valore Value <= 0 viene considerato come stato “vuoto/non inizializzato” (IsEmpty == true), equivalente alla costante JokeId.Empty. Per questo motivo, anche gli eventuali default(JokeId) sono trattati correttamente come identificatori non inizializzati.
+> JokeId è implementato come readonly record struct. Questo implica che, oltre al costruttore privato usato internamente, esiste anche il costruttore di default di C# (default(JokeId) / new JokeId()), che inizializza Value a Guid.Empty.
+> Nel modello di dominio, Guid.Empty viene considerato uno stato “vuoto/non inizializzato” (IsEmpty == true), equivalente alla costante JokeId.Empty. Per questo motivo, anche gli eventuali default(JokeId) sono trattati correttamente come identificatori non inizializzati.
+
 
 
 Elementi chiave di design
 
 * `readonly record struct` → Value Object leggero, immutabile, confrontabile per valore;
-* proprietà `Value` readonly → incapsula l’intero usato come identificatore;
-* costruttore privato → impedisce la creazione arbitraria, imponendo il passaggio da `Create` o da `Empty`;
-* metodo statico `Create` → unica via “normale” per ottenere un `JokeId` valido;
-* membro statico `Empty` → placeholder controllato per scenari tecnici (EF, binding, inizializzazioni).
+* proprietà `Value` readonly → incapsula il `Guid` usato come identificatore;
+* costruttore privato → impedisce la creazione arbitraria, imponendo il passaggio da `Create` o da `New`;
+* metodo statico `Create(Guid)` → unica via “controllata” per ottenere un `JokeId` valido a partire da un valore già noto (non `Guid.Empty`);
+* metodo statico `New()` → genera un nuovo identificatore valido nel dominio;
+* membro statico `Empty` → placeholder controllato per scenari tecnici (mapping/persistenza, binding, inizializzazioni).
+
 
 ---
 
@@ -136,32 +150,33 @@ Elementi chiave di design
 
 L’invariante principale di `JokeId` è molto chiaro:
 
-> “Un identificatore di joke valido deve essere un intero strettamente positivo.”
+> “Un identificatore di joke valido deve essere un Guid tipizzato, non deve essere Guid.Empty e generato nel dominio.”
 
 Questa regola viene applicata nella factory `Create`:
 
 ```csharp
-public static JokeId Create(int value)
+public static JokeId Create(Guid value)
 {
-    if (value <= 0)
+    if (value == Guid.Empty)
     {
         throw new DomainValidationException(
-            JokeErrorMessages.JokeIdInvalid,
+            JokeErrorMessages.JokeIdEmpty,
             nameof(JokeId));
     }
 
-    // At this point, the identifier is a valid domain value.
     return new JokeId(value);
 }
 ```
 
-Qualunque tentativo di istanziare un `JokeId` con un valore:
+Qualunque tentativo di istanziare un `JokeId` con:
 
-* pari a 0,
-* oppure negativo,
+* `value == Guid.Empty` → considerato identificatore vuoto/non inizializzato → `JokeErrorMessages.JokeIdEmpty`
+* qualunque altro `Guid` → identificatore valido nel dominio
 
-viene respinto con una `DomainValidationException`, utilizzando il messaggio
-`JokeErrorMessages.JokeIdInvalid` e specificando `nameof(JokeId)` come `MemberName`.
+viene gestito tramite `DomainValidationException`, specificando `nameof(JokeId)` come `MemberName`.
+
+Nota: il messaggio `JokeErrorMessages.JokeIdInvalid` è tipicamente utile quando un identificatore arriva come stringa/valore non parsabile (scenario gestito fuori dal Domain, es. Application/API), mentre questo Value Object lavora deliberatamente su `Guid` già materializzati.
+
 
 In questo modo:
 
@@ -172,13 +187,13 @@ In questo modo:
 La proprietà:
 
 ```csharp
-public bool IsEmpty => Value <= 0;
+public bool IsEmpty => Value == Guid.Empty;
 ```
 
 fornisce inoltre un controllo rapido per distinguere tra:
 
-* identificatori validi (`Value > 0`),
-* stati “vuoti” o non inizializzati (`Value <= 0`), tipicamente collegati a `Empty`
+* identificatori validi (`Value != Guid.Empty`),
+* stati “vuoti” o non inizializzati (`Value == Guid.Empty`), tipicamente collegati a `Empty`
   o a valori tecnici di placeholder.
 
 ---
@@ -188,28 +203,27 @@ fornisce inoltre un controllo rapido per distinguere tra:
 `JokeId` espone un membro statico:
 
 ```csharp
-public static JokeId Empty { get; } = new JokeId(0);
+public static JokeId Empty { get; } = new JokeId(Guid.Empty);
 ```
 
 `Empty` non rappresenta un identificatore valido nel senso del dominio, ma un **segnaposto tecnico**:
 
-* può essere utilizzato prima che un ORM (es. EF Core) assegni l’identificatore reale alla joke,
+* può essere utilizzato prima che un ORM (mapping/persistenza) assegni l’identificatore reale alla joke,
 * può fungere da valore di default in binding o test,
-* evita l’uso di “magic numbers” come `0` direttamente nel codice applicativo.
+* evita l’uso di "magic values come `Guid.Empty`" direttamente nel codice applicativo.
 
 La proprietà:
 
 ```csharp
-public bool IsEmpty => Value <= 0;
+public bool IsEmpty => Value == Guid.Empty;
 ```
 
-permette di verificare velocemente se un `JokeId` si trova in questo stato “non inizializzato”
-(o comunque non valido per il dominio). È un approccio difensivo che tratta qualunque valore
-non strettamente positivo come “vuoto” o non utilizzabile come identificatore reale.
+* per creare identificatori **validi di dominio** → usare `JokeId.New()`; per reidratazione usare `JokeId.Create(Guid)`;
+* per placeholder tecnici → usare `JokeId.Empty` e verificare con `IsEmpty`.
 
 Regola pratica:
 
-* per creare identificatori **validi di dominio** → usare sempre `JokeId.Create(int)`;
+* per creare identificatori **validi di dominio** → usare `JokeId.New()` per **nuovi Id**, `JokeId.Create(Guid)` per **reidratazione**
 * per placeholder tecnici → usare `JokeId.Empty` e verificare con `IsEmpty`.
 
 ---
@@ -234,16 +248,16 @@ public class Joke
 }
 ```
 
-Il fatto di usare `JokeId` al posto di `int` rende immediatamente più leggibile e sicura
+Il fatto di usare `JokeId` al posto di `Guid` rende immediatamente più leggibile e sicura
 l’API dell’entità/aggregate.
 
 **2. Mapping da/perso DTO o layer applicativo**
 
-Quando l’Application Layer riceve un identificatore come `int` (ad esempio da una route HTTP),
+Quando l’Application Layer riceve un identificatore come `Guid` (ad esempio da una route HTTP),
 può convertirlo in `JokeId` tramite la factory:
 
 ```csharp
-public async Task<JokeDto> GetJokeAsync(int id)
+public async Task<JokeDto> GetJokeAsync(Guid id)
 {
     var jokeId = JokeId.Create(id);
 
@@ -252,10 +266,10 @@ public async Task<JokeDto> GetJokeAsync(int id)
 }
 ```
 
-In questo punto, eventuali valori non validi (0, negativi) vengono immediatamente respinti
+In questo punto, eventuali valori non validi (Guid.Empty) vengono immediatamente respinti
 come `DomainValidationException`, semplificando la logica di gestione errori a valle.
 
-**3. Integrazione con EF Core**
+**3. Integrazione con la persistenza/ORM mapping (esempio EF Core)**
 
 In scenari con Entity Framework Core è comune:
 
@@ -284,12 +298,12 @@ database assegni un identificatore definitivo.
 
   * Modella esplicitamente un concetto del dominio (“identificatore di Joke”)
     anziché utilizzare un tipo primitivo generico.
-  * L’invariante (intero strettamente positivo) è codificato direttamente nel Value Object.
+  * L’invariante (Guid tipizzato, non deve essere Guid.Empty e generato nel dominio) è codificato direttamente nel Value Object.
 
 * **Clean Architecture**
 
   * Vive nel Domain Layer e non dipende da framework o dettagli infrastrutturali.
-  * La traduzione da/verso tipi primitivi (int, chiavi DB, ecc.) è demandata ai layer esterni
+  * La traduzione da/verso tipi primitivi (string/Guid/chiavi DB, ecc.) è demandata ai layer esterni
     (Application, Infrastructure).
 
 * **SOLID (SRP)**
@@ -301,8 +315,7 @@ database assegni un identificatore definitivo.
 
 ## 4.23 Linee guida per estensioni future
 
-Nel caso in cui i requisiti evolvano (es. passaggio da `int` a `long`, o ad un GUID, o ad
-un identificatore più complesso):
+Nel caso in cui i requisiti evolvano (es. passaggio da Guid a Ulid/string/identificatore composto)
 
 * il punto da modificare sarà principalmente `JokeId` (tipo di `Value`, factory `Create`,
   validazione, conversioni);

@@ -1,6 +1,6 @@
 # 📘 **04b_AvatarUrl.md**
 
-### *Value Object per l’URL dell’avatar utente*
+### _Value Object per l’URL dell’avatar utente_
 
 ---
 
@@ -94,7 +94,9 @@ namespace JokesApp.Server.Domain.ValueObjects
             if (v.Length > MaxLength)
             {
                 // Avatar URL exceeds maximum allowed length.
-                throw new DomainValidationException(ApplicationUserErrorMessages.AvatarUrlMaxLength);
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.AvatarUrlMaxLength,
+                    nameof(AvatarUrl));
             }
 
             // Validate URL format (absolute HTTP/HTTPS URL).
@@ -102,7 +104,9 @@ namespace JokesApp.Server.Domain.ValueObjects
                 || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
             {
                 // Avatar URL is not a valid HTTP/HTTPS URL.
-                throw new DomainValidationException(ApplicationUserErrorMessages.AvatarUrlInvalid);
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.AvatarUrlInvalid,
+                    nameof(AvatarUrl));
             }
 
             return new AvatarUrl(v);
@@ -124,12 +128,12 @@ namespace JokesApp.Server.Domain.ValueObjects
 
 Elementi chiave:
 
-* `sealed record` → Value Object immutabile, equality per valore;
-* `MaxLength = 2048` → limite esplicito per stringhe URL, in linea con limiti comuni di browser/DB;
-* `Create(string?)` → unico punto di creazione, con gestione esplicita del caso “nessun avatar”;
-* uso di `ApplicationUserErrorMessages.AvatarUrlMaxLength` e `AvatarUrlInvalid`
+- `sealed record` → Value Object immutabile, equality per valore;
+- `MaxLength = 2048` → limite esplicito per stringhe URL, in linea con limiti comuni di browser/DB;
+- `Create(string?)` → unico punto di creazione, con gestione esplicita del caso “nessun avatar”;
+- uso di `ApplicationUserErrorMessages.AvatarUrlMaxLength` e `AvatarUrlInvalid`
   con `DomainValidationException`;
-* `Empty` e `IsEmpty` per modellare direttamente “assenza di avatar” nel dominio.
+- `Empty` e `IsEmpty` per modellare direttamente “assenza di avatar” nel dominio.
 
 ---
 
@@ -148,9 +152,9 @@ Elementi chiave:
 
    Se il valore è `null`, vuoto o solo spazi:
 
-   * non viene lanciata alcuna eccezione;
-   * il dominio interpreta la situazione come “nessun avatar impostato”;
-   * ritorna l’istanza `AvatarUrl.Empty`.
+   - non viene lanciata alcuna eccezione;
+   - il dominio interpreta la situazione come “nessun avatar impostato”;
+   - ritorna l’istanza `AvatarUrl.Empty`.
 
    Il fatto che non esista un messaggio `AvatarUrlRequired` in `ApplicationUserErrorMessages`
    è coerente con questa scelta: l’avatar non è un campo obbligatorio.
@@ -169,37 +173,41 @@ Elementi chiave:
    ```csharp
    if (v.Length > MaxLength)
    {
-       throw new DomainValidationException(ApplicationUserErrorMessages.AvatarUrlMaxLength);
+    throw new DomainValidationException(
+        ApplicationUserErrorMessages.AvatarUrlMaxLength,
+        nameof(AvatarUrl));
    }
    ```
 
    L’URL dell’avatar non può superare `MaxLength = 2048` caratteri, sia per motivi:
 
-   * tecnici (limiti comuni di URL),
-   * di robustezza (evitare stringhe patologicamente lunghe).
+   - tecnici (limiti comuni di URL),
+   - di robustezza (evitare stringhe patologicamente lunghe).
 
 4. **Formato URL (HTTP/HTTPS assoluto)**
 
    ```csharp
    if (!Uri.TryCreate(v, UriKind.Absolute, out var uri)
-       || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+    || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
    {
-       throw new DomainValidationException(ApplicationUserErrorMessages.AvatarUrlInvalid);
+    throw new DomainValidationException(
+        ApplicationUserErrorMessages.AvatarUrlInvalid,
+        nameof(AvatarUrl));
    }
    ```
 
    Regole:
 
-   * deve essere un **URI assoluto** (`UriKind.Absolute`),
-   * schema ammesso solo `http` o `https`.
+   - deve essere un **URI assoluto** (`UriKind.Absolute`),
+   - schema ammesso solo `http` o `https`.
 
    Non vengono accettati:
 
-   * URL relativi,
-   * schemi diversi (ftp, file, data, ecc.),
-   * stringhe che non sono un URL valido.
+   - URL relativi,
+   - schemi diversi (ftp, file, data, ecc.),
+   - stringhe che non sono un URL valido.
 
-Ogni violazione produce una `DomainValidationException` con un messaggio chiaro e centralizzato.
+Inoltre, quando la validazione fallisce, `AvatarUrl` utilizza `DomainValidationException` specificando `nameof(AvatarUrl)` come `MemberName`, in modo che i layer applicativi possano mappare facilmente l’errore al campo corretto del modello utente.
 
 ---
 
@@ -213,8 +221,8 @@ public sealed record AvatarUrl
 
 Questo garantisce:
 
-* immutabilità → una volta creato, `Value` non cambia;
-* uguaglianza per valore → due `AvatarUrl` con lo stesso `Value` sono considerati uguali.
+- immutabilità → una volta creato, `Value` non cambia;
+- uguaglianza per valore → due `AvatarUrl` con lo stesso `Value` sono considerati uguali.
 
 La gestione del caso “assenza di avatar” è esplicita:
 
@@ -225,8 +233,8 @@ public bool IsEmpty => string.IsNullOrWhiteSpace(Value);
 
 Significa che:
 
-* `AvatarUrl.Empty` rappresenta un utente **senza avatar impostato**;
-* `IsEmpty` è il modo idiomatico per verificare questa condizione.
+- `AvatarUrl.Empty` rappresenta un utente **senza avatar impostato**;
+- `IsEmpty` è il modo idiomatico per verificare questa condizione.
 
 Questo approccio evita l’uso di `null` nel Domain Layer, mantenendo il modello più sicuro
 e facile da manutenere.
@@ -267,12 +275,12 @@ public class ApplicationUser
 
 Vantaggi:
 
-* la logica di validazione dell’URL non è duplicata nei servizi o nei controller:
+- la logica di validazione dell’URL non è duplicata nei servizi o nei controller:
   vive solo in `AvatarUrl`;
-* il dominio ragiona sempre in termini di `AvatarUrl`:
+- il dominio ragiona sempre in termini di `AvatarUrl`:
 
-  * avatar presente → `!Avatar.IsEmpty`,
-  * nessun avatar → `Avatar.IsEmpty` / `Avatar == AvatarUrl.Empty`.
+  - avatar presente → `!Avatar.IsEmpty`,
+  - nessun avatar → `Avatar.IsEmpty` / `Avatar == AvatarUrl.Empty`.
 
 ---
 
@@ -280,21 +288,21 @@ Vantaggi:
 
 `AvatarUrl` è pienamente allineato all’architettura:
 
-* **DDD**
+- **DDD**
 
-  * modella un concetto ben preciso del dominio: l’URL dell’avatar utente;
-  * incapsula regole e invarianti relativi a quel concetto.
+  - modella un concetto ben preciso del dominio: l’URL dell’avatar utente;
+  - incapsula regole e invarianti relativi a quel concetto.
 
-* **Clean Architecture**
+- **Clean Architecture**
 
-  * vive nel Domain Layer;
-  * non dipende da framework, da DataAnnotations, da HTTP o da DTO:
+  - vive nel Domain Layer;
+  - non dipende da framework, da DataAnnotations, da HTTP o da DTO:
     usa solo BCL (`System.Uri`) e componenti di dominio (`ApplicationUserErrorMessages`, `DomainValidationException`).
 
-* **SOLID (SRP)**
+- **SOLID (SRP)**
 
-  * responsabilità unica → rappresentare e validare l’URL dell’avatar;
-  * nessuna logica di persistenza, presentazione o mapping.
+  - responsabilità unica → rappresentare e validare l’URL dell’avatar;
+  - nessuna logica di persistenza, presentazione o mapping.
 
 ---
 
@@ -303,9 +311,9 @@ Vantaggi:
 In caso di requisiti futuri aggiuntivi (es. limiti di dominio specifici, whitelisting
 di host, supporto a CDN dedicate):
 
-* il punto naturale per estendere la logica è `AvatarUrl.Create`,
-* l’API pubblica (`Create`, `Empty`, `Value`, `IsEmpty`) può rimanere invariata,
-* il resto del dominio continuerà a funzionare senza modifiche.
+- il punto naturale per estendere la logica è `AvatarUrl.Create`,
+- l’API pubblica (`Create`, `Empty`, `Value`, `IsEmpty`) può rimanere invariata,
+- il resto del dominio continuerà a funzionare senza modifiche.
 
 In sintesi:
 

@@ -15,7 +15,7 @@ risposta è un elemento centrale del modello. Come per la question, non si tratt
 - viene normalizzato (trim degli spazi).
 
 Per evitare che queste regole vengano duplicate o applicate in modo incoerente in più punti
-(entità, servizi, controller), la risposta viene modellata come **Value Object** dedicato:
+(entità, servizi, controller{layer applicativo/presentazione}), la risposta viene modellata come **Value Object** dedicato:
 `AnswerText`.
 
 `AnswerText`:
@@ -132,7 +132,7 @@ namespace JokesApp.Server.Domain.ValueObjects
         #region Static members
 
         /// <summary>
-        /// Istanza vuota, utile per EF Core, test o scenari di binding iniziale.
+        /// Istanza vuota, utile per scenari tecnici di mapping/persistenza, test o binding iniziale.
         /// </summary>
         public static AnswerText Empty { get; } = new AnswerText(string.Empty);
 
@@ -253,7 +253,7 @@ public int Length => Value.Length;
 Questi membri servono a:
 
 * avere una **istanza vuota controllata** (`Empty`), utile in scenari tecnici
-  (EF Core, binding, test) dove può essere necessario inizializzare il Value Object
+  (mapping/persistenza, test) dove può essere necessario inizializzare il Value Object
   senza passare dal processo di validazione standard;
 * verificare facilmente se l’istanza rappresenta un valore vuoto/non inizializzato
   (`IsEmpty`), senza doversi ricordare la forma interna;

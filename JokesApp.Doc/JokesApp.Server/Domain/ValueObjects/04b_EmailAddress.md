@@ -92,7 +92,9 @@ namespace JokesApp.Server.Domain.ValueObjects
             if (string.IsNullOrWhiteSpace(value))
             {
                 // Email is required at domain level.
-                throw new DomainValidationException(ApplicationUserErrorMessages.EmailRequired);
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.EmailRequired,
+                    nameof(EmailAddress));
             }
 
             // Normalize input by trimming leading/trailing whitespace.
@@ -101,13 +103,17 @@ namespace JokesApp.Server.Domain.ValueObjects
             if (v.Length > MaxLength)
             {
                 // Email exceeds maximum allowed length.
-                throw new DomainValidationException(ApplicationUserErrorMessages.EmailTooLong);
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.EmailTooLong,
+                    nameof(EmailAddress));
             }
 
             if (!EmailRegex.IsMatch(v))
             {
                 // Email format is invalid.
-                throw new DomainValidationException(ApplicationUserErrorMessages.EmailInvalid);
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.EmailInvalid,
+                    nameof(EmailAddress));
             }
 
             return new EmailAddress(v);
@@ -147,9 +153,11 @@ per qualsiasi istanza creata tramite `Create`:
 
    ```csharp
    if (string.IsNullOrWhiteSpace(value))
-   {
-       throw new DomainValidationException(ApplicationUserErrorMessages.EmailRequired);
-   }
+  {
+    throw new DomainValidationException(
+        ApplicationUserErrorMessages.EmailRequired,
+        nameof(EmailAddress));
+  }  
    ```
 
    Nel Domain Layer l’email dell’utente è considerata **obbligatoria**:
@@ -175,9 +183,11 @@ per qualsiasi istanza creata tramite `Create`:
 
    ```csharp
    if (v.Length > MaxLength)
-   {
-       throw new DomainValidationException(ApplicationUserErrorMessages.EmailTooLong);
-   }
+  {
+    throw new DomainValidationException(
+        ApplicationUserErrorMessages.EmailTooLong,
+        nameof(EmailAddress));
+  }
    ```
 
    Il dominio impone un limite di `MaxLength = 256` caratteri per l’email:
@@ -189,9 +199,11 @@ per qualsiasi istanza creata tramite `Create`:
 
    ```csharp
    if (!EmailRegex.IsMatch(v))
-   {
-       throw new DomainValidationException(ApplicationUserErrorMessages.EmailInvalid);
-   }
+  {
+    throw new DomainValidationException(
+        ApplicationUserErrorMessages.EmailInvalid,
+        nameof(EmailAddress));
+  }
    ```
 
    La regex gestisce:

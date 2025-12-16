@@ -1,347 +1,258 @@
-Sì, è tutto chiarissimo e – ti dico sinceramente – la struttura che ti sei dato (01_, 02_, 03_, 04a_, 04b_…) è **molto sensata**:
+# Flow Update pratico (come usarli mentre sviluppi)
 
-* ragiona **per layer** (Domain, Data, ecc.),
-* ragiona **per blocchi logici** (Exceptions → Errors → VO → Entities…),
-* e dentro i VO ragiona **per entità** (`04a_*` = VO di `Joke`, `04b_*` = VO di `ApplicationUser`).
+* **TIMELINE.md = ordine di sviluppo** (cosa fare prima/dopo) e stato globale per step. 
+* **toDo.md = cruscotto operativo** (cosa esiste / cosa manca / cosa è stato chiuso), anche non ordinato. 
 
-È esattamente il tipo di numerazione che ti aiuta a “navigare mentalmente” il progetto anche a distanza di mesi.
+### 1) Parti sempre dalla TIMELINE
 
-Come mi hai chiesto, ti propongo ora una versione aggiornata di `TIMELINE.md` che:
+* Scegli **il primo step non chiuso** (🟡 o ⬜) dall’alto verso il basso. 
+* Quello è il tuo “blocco di lavoro” della sessione.
 
-* mette al centro il **Big Step 1: Domain Layer**,
-* rispetta la numerazione che stai usando per i file (`01_`, `02_`, `03_`, `04a_`, `04b_`…),
-* integra anche il resto dell’app (persistence, DTO, services, controller, test) in modo ordinato per i passi successivi.
+### 2) Esegui il blocco fino a “Definition of Done”
 
-Puoi considerare questo come **nuovo contenuto completo di `TIMELINE.md`** (da copiare/incollare).
+Per considerare un punto “chiuso” (✅), la regola che ti consiglio è:
+
+* codice implementato + verificato (e se serve refactor)
+* documentazione allineata
+* build/run ok (e migrazione aggiornata se siamo in 07a/07b)
+* almeno i test minimi coerenti con lo step (se già presenti)
+
+### 3) Aggiorna DOPO il TODO (non prima)
+
+* Nel TODO:
+
+  * sposti voci da 🟡→✅ quando le hai davvero verificate/chiuse 
+  * aggiungi nuove task scoperte “per non perderle”, anche se non sono in ordine.
+
+### 4) Chiudi anche la TIMELINE
+
+Quando uno step è concluso:
+
+* in TIMELINE cambi 🟡/⬜ → ✅ sullo step (e sulle sotto-voci). 
+
+Quindi sì: **la timeline guida, il TODO traccia e fotografa**. È un flusso molto maturo.
+Se vuoi continuare in modo rigoroso, il prossimo blocco naturale è:
+**00 Repo hygiene → 07a Persistence (DbContext + Converters + Migrations)**.
 
 ---
 
-# 📌 **TIMELINE DEL PROGETTO (sequenza completa aggiornata 01 → 11)**
-
-> Focus attuale: **Big Step 1 — Domain Layer**
-> I passi successivi (persistence, servizi, API, test) restano nella timeline per avere una visione end-to-end.
-
+# 📌 TIMELINE DEL PROGETTO (sequenza completa aggiornata 01 → 11)
 ```md
-01 - Domain/Exceptions/
-       ├─ 01_DomainException.cs/md
-       ├─ 01_DomainOperationException.cs/md
-       ├─ 01_DomainValidationException.cs/md
-       └─ 01_UnauthorizedDomainOperationException.cs/md
+00 - Repo hygiene (non funzionale) ⬜
+       ├─ .gitignore (bin/ obj/ *.user Server_Backup/) ✅
+       └─ rimozione template WeatherForecast (se non serve) ⬜
 
-      │ │ │ 
+01 - Domain/Exceptions/
+       ├─ 01_DomainException.cs/md ✅
+       ├─ 01_DomainOperationException.cs/md ✅
+       ├─ 01_DomainValidationException.cs/md ✅
+       └─ 01_UnauthorizedDomainOperationException.cs/md ✅
+
+      │ │ │
       ▼ ▼ ▼
 
 02 - Data/Errors/
-        └─ 02_StartupErrorMessages.cs/md
+       └─ 02_StartupErrorMessages.cs/md ✅ 
 
-      │ │ │ 
+      │ │ │
       ▼ ▼ ▼
 
-03 - Domain/Errors
-       ├─ 03_JokeErrorMessages.cs/md
-       └─ 03_ApplicationUserErrorMessages.cs/md
-       
-      │ │ │ 
+03 - Domain/Errors/
+       ├─ 03_JokeErrorMessages.cs/md ✅
+       └─ 03_ApplicationUserErrorMessages.cs/md ✅
+
+      │ │ │
       ▼ ▼ ▼
 
-04 - Domain/ValueObjects
-(04a_Joke_ValueObjects:)
-       ├─ 04a_QuestionText.cs/md
-       ├─ 04a_AnswerText.cs/md
-       ├─ 04a_JokeId.cs/md
-       └─ 04a_UserId.cs/md
+04 - Domain/ValueObjects/
+  (04a_Joke_ValueObjects)
+       ├─ 04a_QuestionText.cs/md ✅
+       ├─ 04a_AnswerText.cs/md ✅
+       ├─ 04a_JokeId.cs/md ✅
+       └─ 04a_UserId.cs/md ✅
 
-(04b_ApplicationUser_ValueObjects:)
-       ├─ 04b_DisplayName.cs/md
-       └─ 04b_
+  (04b_ApplicationUser_ValueObjects)
+       ├─ 04b_AvatarUrl.cs/md ✅
+       ├─ 04b_EmailAddress.cs/md ✅
+       └─ 04b_DisplayName.cs/md ✅
 
-      │ │ │ 
+      │ │ │
       ▼ ▼ ▼
 
-05 - Domain/Entities (_Entities_&_AggregatesRoot_)/
-       ├─ 05a_Joke.cs/md
-       └─ 05b_ApplicationUser
-        │
-        ▼
-06_Domain_Events_&_Domain_Services_(se_servono)
-        │
-        ▼
-07_Persistence_(PostgreSQL_+_EF_Core_+_DbContext_+_Migrations)
-        │
-        ▼
-08_DTO_Definition_(Input/Output_API)
-        │
-        ▼
-09_Application_Services_(UseCases/Business_Logic)
-        │
-        ▼
-10_API_Controllers_&_Integration_(frontend ↔ backend)
-        │
-        ▼
-11_Testing_(Unit_+_Integration_+_End-to-End)
+05 - Domain/Entities & Aggregates/
+       ├─ 05a_Joke.cs/md ✅
+       └─ 05b_ApplicationUser.cs/md ✅
+
+      │ │ │
+      ▼ ▼ ▼
+
+06a - Domain/Primitives/
+       └─ 06_AggregateRoot.cs/md ✅
+
+      │ │ │
+      ▼ ▼ ▼
+
+06b - Domain/Events/
+       ├─ 06_IDomainEvent.cs/md ✅
+       ├─ 06_DomainEvent.cs/md ✅
+       ├─ 06_JokeWasCreated.cs/md ✅
+       ├─ 06_JokeWasUpdated.cs/md ✅
+       ├─ 06_JokeWasLiked.cs/md ✅
+       └─ 06_JokeWasUnliked.cs/md ✅
+
+07a - Persistence (Domain Data Model: EF Core + DbContext + Migrations) 🟡
+      ├─ Data/JokesDbContext.cs (presente, da verificare) 🟡
+      ├─ Data/Converters/*.cs (presenti, da verificare) 🟡
+      ├─ Migrations/* (presenti, da verificare e riallineare al dominio) 🟡
+      └─ Mapping VO + Entities + relazioni + constraints (da completare) ⬜      
+
+07b - Identity Persistence & Security Baseline (DB + tabelle Identity + policy) ⬜
+      ├─ Scelta modello Identity (infrastruttura, non Domain) ⬜
+      ├─ Configurazione EF/Stores Identity + migrazione Identity ⬜
+      ├─ Password policy + lockout + confirmed email ⬜
+      └─ (opzionale) seeding ruoli/policy ⬜
+
+      │
+      ▼
+08 - DTO Definition (Input/Output API) 🟡
+      ├─ DTOs/JokeDto.cs (presente, da verificare) 🟡
+      ├─ DTOs/RegisterUserDto.cs (presente, da verificare) 🟡
+      └─ DTOs/UserDto.cs (presente, da verificare) 🟡
+
+      │
+      ▼
+09 - Application Services (UseCases / Business Logic) ⬜
+      └─ Auth use cases (register/login, token issuing) ⬜
+      │
+      ▼
+10 - API Controllers & Integration (frontend ↔ backend) 🟡
+      ├─ Program.cs + appsettings* + launchSettings (hosting/config) 🟡
+      ├─ JWT auth pipeline (Authentication/Authorization) ⬜
+      └─ Controllers/WeatherForecastController.cs (template / da rimuovere o sostituire) 🟡
+
+      │
+      ▼
+11 - Testing (Unit + Integration + End-to-End) ⬜
+        └─ Unit: Test suite per il Domain da implementare/validare
 ```
 
 ---
 
-# 🎯 **Interpretazione dettagliata della timeline**
+# 🎯 Interpretazione dettagliata della timeline
 
-## 🧱 **Big Step 1 — Domain Layer**
+## 🧱 Big Step 1 — Domain Layer
 
-Obiettivo: avere un **dominio completo, coerente e indipendente** da DB, framework e HTTP.
-
----
-
-### **01 — Domain Exceptions (`01_*.cs` / `01_*.md`)**
-
-> *`JokesApp.Server.Domain.Exceptions.*`*
-
-* Definizione della gerarchia di eccezioni di dominio:
-
-  * `DomainException` (base astratta),
-  * `DomainOperationException`,
-  * `DomainValidationException`,
-  * `UnauthorizedDomainOperationException`.
-* Rappresentano:
-
-  * violazioni di regole di business,
-  * operazioni non consentite,
-  * validazioni fallite,
-  * mancanza di permessi.
-* Nessun riferimento a HTTP, DB, UI → **dominio puro**.
+Obiettivo: un **dominio completo, coerente e indipendente** da DB, framework e HTTP.
 
 ---
 
-### **02 — Data Errors Startup (`02_StartupErrorMessages.cs` / `02_*.md`)**
+### 01 — Domain Exceptions (`01_*.cs` / `01_*.md`) ✅
 
-> *`JokesApp.Server.Data.Errors.StartupErrorMessages`*
+Gerarchia eccezioni di dominio (pura), usata per:
 
-* Centralizza i messaggi di errore **tecnici** di avvio:
-
-  * impossibile connettersi al DB,
-  * errore nel test del `DbContext`.
-* Sta nel layer **Data**, non nel Domain, ma è “passo base” collegato al comportamento di start dell’app.
-
----
-
-### **03 — Domain Errors (`03_*.cs` / `03_*.md`)**
-
-> *`JokesApp.Server.Domain.Errors.*`*
-
-* `JokeErrorMessages`:
-
-  * errori per Question/Answer,
-  * errori per UserId/Author,
-  * errori per JokeId,
-  * violazioni di regole di dominio (like, update, ecc.),
-  * messaggi generici (`ValueRequired`).
-* `ApplicationUserErrorMessages`:
-
-  * errori per `DisplayName`,
-  * errori per `AvatarUrl`,
-  * errori per `Email`.
-* Usati da:
-
-  * Value Object (es. `QuestionText`, `AnswerText`, `JokeId`, `UserId`),
-  * entità/aggregati (`Joke`, `ApplicationUser`),
-  * `DomainValidationException`.
+* violazioni regole business,
+* operazioni non consentite,
+* validazioni fallite,
+* permessi mancanti.
 
 ---
 
-### **04 — Domain Value Objects (`04_*.cs` / `04_*.md`)**
+### 02 — Data Errors Startup (`02_StartupErrorMessages.cs` / `02_*.md`) ✅
 
-Qui entra in gioco il tuo schema con **lettere per entità**:
-
-* `04a_*` → VO legati all’entità **`Joke`**
-* `04b_*` → VO legati all’entità **`ApplicationUser`**
-
-#### **04a — VO per Joke (`04a_*.cs` / `04a_*.md`)**
-
-> Già sviluppati e documentati
-
-* `04a_QuestionText`
-* `04a_AnswerText`
-* `04a_JokeId`
-* `04a_UserId` (versione usata nel contesto Joke/Author)
-
-Questi VO:
-
-* sono immutabili e auto-validanti,
-* usano `DomainValidationException` + `JokeErrorMessages`,
-* incapsulano le regole di:
-
-  * lunghezza massima,
-  * non null / non vuoto,
-  * formati ammessi,
-  * ID strettamente positivi.
-
-#### **04b — VO per ApplicationUser (`04b_*.cs` / `04b_*.md`)**
-
-> Da sviluppare in seguito, simmetrici a 04a ma per il dominio utente
-
-Esempi possibili:
-
-* `04b_Email` / `EmailAddress`,
-* `04b_DisplayName`,
-* `04b_AvatarUrl`,
-* eventuale `UserId` lato Identity (se separato da quello di Joke, altrimenti stesso VO).
-
-Anche qui:
-
-* VO immutabili,
-* validazione con `DomainValidationException`,
-* messaggi da `ApplicationUserErrorMessages`.
+Messaggi tecnici di avvio (DB/DbContext). È nel layer Data, ma è un prerequisito pratico del backend.
 
 ---
 
-### **05 — Domain Entities & Aggregates**
+### 03 — Domain Errors (`03_*.cs` / `03_*.md`) ✅
 
-> Qui entra in gioco `Joke.cs` (e poi `ApplicationUser.cs` lato dominio)
+Cataloghi messaggi:
 
-* `Joke` come **Aggregate Root**:
+* `JokeErrorMessages`
+* `ApplicationUserErrorMessages`
 
-  * proprietà tipizzate con i VO:
-
-    * `JokeId`, `QuestionText`, `AnswerText`, `UserId` (autore), conteggio like, ecc.
-  * logica di dominio:
-
-    * creare una joke,
-    * aggiornare question/answer,
-    * gestire autore e permessi,
-    * gestire like/unlike con le regole min/max.
-  * utilizzo di:
-
-    * `DomainOperationException`,
-    * `DomainValidationException`,
-    * `UnauthorizedDomainOperationException`.
-
-* `ApplicationUser` (parte realmente di dominio, se la separi dal puro modello Identity):
-
-  * proprietà VO (`Email`, `DisplayName`, `AvatarUrl`),
-  * eventuali regole di dominio lato utente (profilo, stato, ecc.).
+Usati da VO, entità/aggregate ed eccezioni di validazione.
 
 ---
 
-### **06 — Domain Events & Domain Services (se servono)**
+### 04 — Domain Value Objects (`04a_*` / `04b_*`) ✅
 
-* Interfaccia/base degli eventi di dominio:
+Schema per entità:
 
-  * `IDomainEvent`, `DomainEvent` (timestamp, Id, ecc.).
-* Eventi concreti (esempi):
+* `04a_*` → VO di `Joke` ✅
+* `04b_*` → VO di `ApplicationUser` ✅
 
-  * `JokeWasCreated`,
-  * `JokeWasUpdated`,
-  * `JokeWasLiked`,
-  * `JokeWasUnliked`,
-  * eventuali eventi lato `ApplicationUser`.
-* Eventuali **Domain Services**:
-
-  * logiche trasversali che non appartengono ad una singola entità.
+VO immutabili, auto-validanti, con messaggi centralizzati.
 
 ---
 
-## 🗄️ **Big Step 2 — Persistence & Infrastructure**
+### 05 — Domain Entities & Aggregates ✅
 
-### **07 — Persistence (PostgreSQL + EF Core + DbContext + Migrations)**
-
-Riassume le fasi tecniche che nella vecchia timeline erano 01–06:
-
-* Configurazione **PostgreSQL** e `appsettings.json`.
-* Setup **Entity Framework Core** (pacchetti, tooling, configurazione).
-* Definizione di `JokesDbContext`:
-
-  * mapping dei VO,
-  * mapping di `Joke` e `ApplicationUser`,
-  * relazioni.
-* **Migrations**:
-
-  * creazione schema iniziale,
-  * evoluzioni successive dopo i cambiamenti nel Domain Layer.
+* `Joke` è **Aggregate Root** e oggi eredita da `AggregateRoot` (Domain/Primitives), quindi genera eventi tramite API base.
+* `ApplicationUser` è entità di dominio pura, con VO e regole minime coerenti (doc “truth-first”, niente legacy confondente).
 
 ---
 
-## 🧩 **Big Step 3 — Application & API Layer**
+### 06a — Domain Primitives ✅
 
-### **08 — DTO Definition (Input/Output API)**
+Qui collochi correttamente `AggregateRoot`:
 
-* Definizione dei modelli di:
-
-  * input (request DTO),
-  * output (response DTO).
-* Vestono i VO e le entità per l’esterno:
-
-  * cosa vede il client,
-  * cosa non viene esposto,
-  * validazioni di input (es. data annotation).
+* standardizza la **coda eventi**,
+* evita boilerplate negli aggregate,
+* abilita un flusso pulito: mutate → accoda evento → persist → pull & publish.
 
 ---
 
-### **09 — Application Services (UseCases / Business Logic Layer)**
+### 06b — Domain Events ✅
 
-* Implementano **i casi d’uso**:
-
-  * creare una joke,
-  * aggiornare una joke,
-  * cancellare,
-  * mettere/rimuovere like,
-  * registrare un utente, aggiornare profilo, ecc.
-* Orchestrano:
-
-  * il dominio,
-  * i repository (interfacce del Domain),
-  * le transazioni.
+* Contratti base: `IDomainEvent`, `DomainEvent`
+* Eventi concreti per `Joke`: Created / Updated / Liked / Unliked
+* Tutto documentato e allineato al dominio attuale.
 
 ---
 
-### **10 — API Controllers & Integration (frontend ↔ backend)**
+## 🗄️ Big Step 2 — Persistence & Infrastructure (prossimo vero step)
 
-* Controllers HTTP:
+### 07 — Persistence 🟡
+Lo step 07 si divide in 07a (Domain model) e 07b (Identity)
 
-  * ricevono i DTO,
-  * chiamano gli Application Services,
-  * mappano le eccezioni/domino a risposte HTTP.
-* Integrazione con il frontend:
+Qui inizi davvero con:
 
-  * chiamate da React,
-  * test dei flussi end-to-end (login, create joke, like, ecc.).
+* mapping EF Core dei VO,
+* mapping di `Joke` e `ApplicationUser`,
+* relazione `ApplicationUser (1) → (N) Jokes`,
+* migrations.
 
----
+#### 07a (DbContext/Converters/Migrations del dominio) 🟡
+(mapping EF Core dei VO, mapping di Joke/ApplicationUser, migrations del modello dominio)
 
-## ✅ **Big Step 4 — Testing**
-
-### **11 — Testing (Unit + Integration + End-to-End)**
-
-* **Unit test**:
-
-  * Value Object (regole di validazione),
-  * entità/aggregati (`Joke`),
-  * Domain Services.
-* **Integration test**:
-
-  * DbContext + repository,
-  * Application Services.
-* **End-to-End / API test**:
-
-  * controller + pipeline completa,
-  * flussi principali dell’utente.
+#### 07b — Identity Persistence & Security Baseline ⬜
+(Identity tables + migrazioni Identity + policy base: password/lockout/confirmed email)
 
 ---
 
-## 💡 Sul tuo schema 01_ / 02_ / 03_ / 04a_ / 04b_
+## 🧩 Big Step 3 — Application & API Layer
 
-Per riassumere:
+### 08 — DTO 🟡
+* Presenti: `JokeDto`, `UserDto`, `RegisterUserDto`
+* Da completare: DTO per Create/Update + validazione/mapping
 
-* `01_` → **Domain/Exceptions** (blocco già completato)
-* `02_` → **Data/Errors/StartupErrorMessages**
-* `03_` → **Domain/Errors** (Joke + ApplicationUser)
-* `04a_` → **Domain/ValueObjects** per `Joke` (già completati)
-* `04b_` → **Domain/ValueObjects** per `ApplicationUser` (da fare)
+### 09 — Use Cases / Application Services ⬜
 
-È un sistema:
+### 10 — Controllers & Integration 🟡
+* Presente: `WeatherForecastController` (template)
+* Da fare: controllers reali + error model + auth pipeline
+* Hosting & configuration (`Program.cs`, `appsettings*`, `launchSettings`)
+* (inclusa la pipeline JWT: Authentication/Authorization + AuthController)
 
-* chiaro,
-* scalabile (04c_ per una futura entità, ecc.),
-* perfetto per collegare **TIMELINE → file system → documentazione**.
+---
 
-Se vuoi, il prossimo passo pratico dopo questo aggiornamento di `TIMELINE.md` sarà:
+## ✅ Big Step 4 — Testing
 
-* iniziare con `Joke.cs` (entità/aggregate) e allinearci al punto **05 — Domain Entities & Aggregates** della timeline.
+### 11 — Testing ⬜
+
+* Unit: VO + aggregate + primitive
+* Integration: DbContext/Repo + UseCases
+* E2E: pipeline API
+
+---
+

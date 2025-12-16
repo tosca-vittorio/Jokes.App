@@ -118,8 +118,7 @@ La progettazione di `DomainOperationException` ha diversi obiettivi specifici:
 
    * Il costruttore vuoto è utile per compatibilità e per scenari in cui il messaggio viene impostato
      altrove (anche se l’uso principale resta quello con `message`).
-   * Il costruttore con `innerException` supporta il wrapping di eccezioni tecniche (es. errori di
-     infrastructure) in un contesto di dominio, senza perdere la stack trace originale.
+   * Il costruttore con `innerException` consente di preservare dettagli diagnostici quando l’eccezione viene creata nei layer applicativi/adapters come traduzione di un fallimento tecnico. Il Domain Layer non effettua wrapping di eccezioni infrastrutturali.
 
 4. **Rimanere coerente con la filosofia di Clean Architecture**
 
@@ -182,24 +181,6 @@ public void Like(UserId userId)
 Qui non si tratta di un problema di formato (la `UserId` è valida) né di autorizzazione (l’utente
 è legittimamente autenticato), ma di una **regola di business** legata allo stato dell’aggregato:
 non si può ripetere l’operazione in quella condizione.
-
-**2. Wrapping di eccezione tecnica in un contesto di dominio**
-
-```csharp
-try
-{
-    _jokeRepository.Save(joke);
-}
-catch (Exception ex)
-{
-    // Wrap technical exception into a domain-level operation failure.
-    throw new DomainOperationException("Unable to persist joke state.", ex);
-}
-```
-
-In questo scenario, l’errore originate è tecnico (DB, EF Core, connessione, ecc.), ma a un
-certo livello si può decidere di “risemantizzare” il problema come fallimento dell’operazione
-di dominio, preservando comunque la stack trace tramite `innerException`.
 
 ---
 

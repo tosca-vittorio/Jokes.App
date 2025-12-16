@@ -254,8 +254,7 @@ utilizzati nel progetto:
 
 Per mantenere il codice coerente:
 
-* utilizza `DomainValidationException` ogni volta che **un valore, parametro o DTO
-  non rispetta le regole di validazione del dominio**;
+* utilizza `DomainValidationException` ogni volta che **un valore/parametro di dominio (anche se proveniente da un DTO/Command)** non rispetta le regole di validazione del dominio; in pratica, durante il mapping verso i Value Object (`QuestionText.Create(...)`, ecc.);
 * valorizza `MemberName` quando l’errore è chiaramente legato a una singola
   proprietà/Value Object (es. `nameof(AnswerText)`), così da poter sfruttare
   meglio logging e mapping verso il frontend;

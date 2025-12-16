@@ -1,4 +1,4 @@
-# 📘 **04_UserId.md**
+# 📘 **04a_UserId.md**
 
 ### *Value Object per l’identificatore utente*
 
@@ -37,7 +37,7 @@ namespace JokesApp.Server.Domain.ValueObjects
     /// <summary>
     /// Identificatore tipizzato dell'utente, conforme alle regole del dominio
     /// e ai vincoli di lunghezza di Identity Core.
-    /// Immutabile, auto-validante e non può rappresentare un valore invalido.
+    /// Immutabile, Auto-validante se creato tramite Create; supporta uno stato tecnico Empty per placeholder.
     /// </summary>
     public readonly record struct UserId
     {
@@ -119,7 +119,7 @@ namespace JokesApp.Server.Domain.ValueObjects
 
         /// <summary>
         /// Rappresenta un identificativo vuoto o non inizializzato.
-        /// Usato come placeholder per EF Core e scenari di default.
+        /// Usato come placeholder per scenari tecnici di mapping/persistenza e scenari di default.
         /// </summary>
         public static UserId Empty { get; } = new UserId(string.Empty);
 
@@ -130,7 +130,7 @@ namespace JokesApp.Server.Domain.ValueObjects
         /// <summary>
         /// Restituisce la rappresentazione testuale dell'identificativo utente.
         /// </summary>
-        public override string ToString() => Value;
+        public override string ToString() => Value ?? string.Empty;
 
         #endregion
     }
@@ -201,7 +201,7 @@ public static UserId Empty { get; } = new UserId(string.Empty);
 
 `Empty` non rappresenta un identificativo valido nel dominio, ma uno **stato tecnico**:
 
-* utile per EF Core (prima del popolamento effettivo dei dati),
+* utile per scenari tecnici di mapping/persistenza (es: EF Core prima del popolamento effettivo dei dati),
 * utile in scenari di binding iniziale o test,
 * evita l’uso disordinato di `null` o stringhe vuote sparse nel codice.
 
@@ -313,7 +313,7 @@ var userId = UserId.Create(userIdString);        // Value Object
 
 `UserId` segue gli stessi pattern di:
 
-* `JokeId` (identificatore tipizzato numerico),
+* `JokeId`(identificatore tipizzato basato su Guid),
 * `QuestionText` e `AnswerText` (VO testuali).
 
 Questo porta diversi vantaggi:

@@ -1,642 +1,225 @@
-# 📄 **PROJECT-TODO.md**
+# 📄 PROJECT-TODO.md
+
+Documentazione centralizzata delle attività concluse, in corso o da implementare per completare **JokesApp** secondo:
+- Clean Architecture + DDD
+- SOLID / DRY / KISS / YAGNI
+- documentazione “truth-first” (descrive solo ciò che esiste davvero)
 
 ---
 
-# # 🗂️ **PROJECT TODO — Stato generale e roadmap di sviluppo**
-
-Documentazione centralizzata di tutte le attività concluse, in corso o da implementare per completare l’applicazione **JokesApp** secondo le best practice architetturali, di sicurezza, di design del dominio e di testabilità.
-
----
-
-# ## 1️⃣ **Struttura della solution & Documentazione**
-
-### **1.1 Struttura directory (README root)**
-
-* [ ] Aggiornare l’albero directory di `/JokesApp` per riflettere lo stato COMPLETO del progetto
-* [ ] Aggiornare sempre dopo ogni nuova macro-cartella
-
-**Stato:** 🔴 Da fare
-**Note:** in attesa della struttura definitiva (Controllers, Services, altri modelli, ecc.)
+## ✅ Legenda
+- ✅ **Fatto / Chiuso (verificato e allineato a codice + doc)**
+- 🟡 **Presente / In corso (esiste nel repo ma non ancora verificato/chiuso)**
+- ⬜ **Da fare**
 
 ---
 
-### **1.2 Creazione/Allineamento `JokesApp.Doc/ROADMAP.md`**
+# 🧠 0) Idee future (backlog, non vincolante)
 
-* [ ] Creare il file `ROADMAP.md` con struttura ad albero sintetica
-* [ ] Mantenere identica struttura logica tra `README.md` root e `ROADMAP.md`
+Possibili estensioni naturali del modello `Joke` (solo se emergono casi d’uso reali):
+- ⬜ `Category` / `Tags`
+- ⬜ `Rating` (1–5) oppure ranking/score
+- ⬜ `IsPublic` / `IsDeleted` (soft delete / visibilità)
+- ⬜ likes user-based (non solo contatore)
 
-**Stato:** 🔴 Da fare
-**Note:** verrà scritto una volta completata la definizione dei componenti.
-
----
-
-### **1.3 Allineamento documentazione**
-
-* [ ] Garantire coerenza tra:
-
-  * README root
-  * ROADMAP.md
-  * Documentazione interna di Server/Client/Test
-
-**Stato:** 🔴 Da fare
+> Nota: queste non sono “debiti”, sono backlog. Si implementano solo quando servono davvero.
 
 ---
 
-# ## 2️⃣ **Domain Model — Stato attuale**
+# 🖥️ A) SERVER (BackEnd)
 
-### **2.1 Modello `Joke.cs`**
+## A1) Domain Layer — ✅ COMPLETATO (chiuso)
 
-* [x] Implementazione proprietà
-* [x] Validazioni DataAnnotations
-* [x] Messaggi di errore tramite `JokesErrorMessages.cs`
-* [x] Domain Events di base (presenti ma non ancora estesi)
-* [x] Test unitari completi
+### A1.1 Exceptions (01_*)
+- ✅ DomainException
+- ✅ DomainOperationException
+- ✅ DomainValidationException
+- ✅ UnauthorizedDomainOperationException
 
-**Stato:** 🟢 Completato e stabile
+### A1.2 Domain Errors (03_*)
+- ✅ JokeErrorMessages
+- ✅ ApplicationUserErrorMessages
 
----
+### A1.3 Value Objects (04a_* + 04b_*)
+- ✅ Joke: QuestionText, AnswerText, JokeId, UserId
+- ✅ ApplicationUser: EmailAddress, DisplayName, AvatarUrl
 
-### **2.2 Modello `ApplicationUser.cs`**
+### A1.4 Entities / Aggregates (05a_* + 05b_*)
+- ✅ Joke (Aggregate Root)
+- ✅ ApplicationUser (Domain Entity)
 
-* [x] Campi estesi (DisplayName, AvatarUrl, CreatedAt, UpdatedAt, Jokes)
-* [x] Validazioni corrette
-* [x] Timestamps gestiti correttamente
-* [x] Collezioni Jokes impostate e testate
-* [x] Test unitari completi (82 test totali)
+### A1.5 Primitives (06a_*)
+- ✅ AggregateRoot (event queue + PullDomainEvents)
 
-**Stato:** 🟢 Completato e stabile
+### A1.6 Domain Events (06b_*)
+- ✅ IDomainEvent + DomainEvent
+- ✅ JokeWasCreated / JokeWasUpdated / JokeWasLiked / JokeWasUnliked
 
----
-
-### **2.3 Value Objects (da introdurre)**
-
-* [ ] `JokeContent` (Question + Answer)
-* [ ] `Category`
-* [ ] `Tag`
-* [ ] `Rating` (1–5)
-* [ ] `UserId` come VO per evitare errori string-based
-
-**Stato:** 🔴 Da fare
+### A1.7 Domain Services (06c_*)
+- ✅ Skipped (YAGNI) — nessun caso reale emerso finora
 
 ---
 
-### **2.4 Eccezioni uniformate**
+## A2) Cose già presenti nel repo ma NON ancora verificate/chiuse 🟡
 
-Implementare:
+> Queste esistono già nel filesystem, ma non le abbiamo ancora validate “file-by-file” come il Domain.
 
-```
-DomainException
-│── DomainValidationException
-│── DomainOperationException
-└── UnauthorizedDomainOperationException
-```
-
-* [ ] Creare eccezioni uniformate
-* [ ] Aggiornare Joke.cs e ApplicationUser.cs per usarle
-* [ ] Scrivere unit test
-
-**Stato:** 🔴 Da fare
+- 🟡 `Program.cs` (bootstrap / DI / middleware)
+- 🟡 `appsettings*.json` + `.env`
+- 🟡 `Properties/launchSettings.json`
+- 🟡 `Validation/CustomEmailAttribute.cs`
+- 🟡 `DTOs/*` (JokeDto, UserDto, RegisterUserDto)
+- 🟡 `Data/JokesDbContext.cs`
+- 🟡 `Data/Converters/*`
+- 🟡 `Migrations/*`
+- 🟡 `Controllers/WeatherForecastController.cs` + `WeatherForecast.cs` (template)
 
 ---
 
-### **2.5 Domain Events avanzati**
+## A3) Persistence & Data (Step 07a) — 🟡
 
-* [ ] JokeCreatedEvent
-* [ ] JokeUpdatedEvent
-* [ ] JokeLikedEvent
-* [ ] JokeDeletedEvent
-* [ ] JokeApprovedEvent
+### A3.1 DbContext + EF Core
+- 🟡 Verificare `JokesDbContext` (mapping Entities + VO)
+- 🟡 Verificare `Converters` (ValueObjects <-> DB)
+- 🟡 Verificare migrations esistenti e coerenza con Domain attuale
+- ⬜ Nuova migration (se necessaria) dopo riallineamento mapping
+- ⬜ Policy su timestamp (CreatedAt/UpdatedAt) e constraints DB
 
-**Stato:** 🔴 Da fare
-
----
-
-# ## **2.6 Domain Events → Logging, Realtime, Audit & SignalR**
-
-Questa sezione definisce tutte le attività relative alla gestione completa degli eventi di dominio nel backend, alla propagazione lato client e all’osservabilità del sistema.
-
-### **Event Sourcing / Event Logging**
-
-* [ ] Creare un servizio di log eventi di dominio (DomainEventLogger)
-* [ ] Salvare eventi di dominio (persistenza opzionale: DB o file)
-* [ ] Logging tecnico (stacktrace, contesto, payload)
-* [ ] Logging funzionale (chi ha fatto cosa, quando, perché)
-* [ ] Strutturare gli eventi in JSON leggibile e serializzabile
+### A3.2 Repository & UoW (interfacce)
+- ⬜ Definire interfacce repository (es. `IJokeRepository`, `IUserRepository`)
+- ⬜ Definire unit-of-work / transaction boundary (se serve)
+- ⬜ Strategia dispatch DomainEvents (in-process o Outbox)
 
 ---
 
-### **Audit Trail avanzato**
+## A4) Application Layer / Use Cases (Step 09) — ⬜ DA FARE
 
-* [ ] Registrare operazioni utente critiche (creazione joke, modifiche profilo, like, commenti)
-* [ ] Associare eventi agli utenti tramite `UserId`
-* [ ] Timestamp e correlazione eventi
-* [ ] Possibile tabella: `AuditEvent`
+> Qui si scrivono i casi d’uso, non “services generici” senza direzione.
 
----
-
-### **Monitoraggio in tempo reale**
-
-* [ ] Creare un “EventBus” interno o dispatcher
-* [ ] Pubblicare eventi di dominio come:
-
-  * JokeCreatedEvent
-  * JokeUpdatedEvent
-  * JokeLikedEvent
-  * ApplicationUserUpdatedEvent
-* [ ] Creare EventHandler per reagire automaticamente (log, notifiche, calcolo analytics, ecc.)
+- ⬜ Use case: CreateJoke
+- ⬜ Use case: UpdateJoke
+- ⬜ Use case: LikeJoke / UnlikeJoke
+- ⬜ Use case: GetJokeById / ListJokes (con filtri)
+- ⬜ Use case: RegisterUser / UpdateProfile
+- ⬜ Gestione eccezioni Domain -> error handling applicativo
+- ⬜ Dispatch DomainEvents dopo persistenza
 
 ---
 
-### **Trasmissione eventi al frontend (SignalR)**
+## A5) API Layer / Controllers (Step 10) — 🟡/⬜
 
-* [ ] Configurare hub SignalR: `/eventHub`
-* [ ] Trasmettere eventi AI client:
-
-  * joke creata → popup / animazione
-  * nuovo like → aggiornamento contatore
-  * aggiornamento profilo utente → refresh UI
-* [ ] Testare broadcast e gruppi SignalR
-* [ ] Testare error handling SignalR
+- 🟡 Rimuovere o sostituire template WeatherForecast
+- ⬜ `JokesController`
+- ⬜ `UsersController`
+- ⬜ `AuthController`
+- ⬜ Mapping errori in `ProblemDetails` (coerente e standard)
+- ⬜ Versioning API (opzionale)
 
 ---
 
-### **Notifiche push, popup e animazioni UI**
+## A6) Identity & Security (Step 07b/09/10) — ⬜
 
-* [ ] Implementare servizi lato client per ricevere eventi SignalR
-* [ ] Gestire:
+### A6.1 Identity Options
+- ⬜ Password policy + lockout + require confirmed email
+- ⬜ Gestione ruoli/policy
 
-  * popup
-  * toast
-  * animazioni
-  * badge di notifica
-* [ ] Aggiornare la UI in real-time senza refresh
-* [ ] Collegare EventBus backend ↔ SignalR frontend
-
----
-
-### **Architettura Event-Driven finale**
-
-* [ ] Confermare stile architetturale scelto:
-  ✔ Clean Architecture
-  ✔ DDD
-  ✔ Eventing interno
-  ✔ Hexagonal (opzionale)
-  ✔ SignalR per realtime
-
-* [ ] Documentare diagramma architetturale
-
-* [ ] Validare flussi: Domain → Event → Handler → Log → SignalR → UI
+### A6.2 JWT Auth
+- ⬜ Token generation + validation
+- ⬜ Refresh token (se previsto)
+- ⬜ Revoca token / blacklist (se previsto)
+- ⬜ Protezione endpoint + policy
 
 ---
 
-# ## 3️⃣ **Database & EF Core**
+## A7) Eventing avanzato / Logging / Audit / SignalR — ⬜ (backlog avanzato)
 
-### **3.1 `JokesDbContext`**
+> Questo è un “Big Feature Set”. Si fa dopo MVP.
 
-* [x] Creazione del file
-* [x] Registrazione in Program.cs
-* [x] Lazy Loading disattivato (ottimo)
-* [x] Prima migrazione creata
-* [x] Prima migrazione applicata
-* [ ] Seconda migrazione per aggiornamenti ai modelli (DisplayName, AvatarUrl ecc.)
-
-**Stato:** 🟡 Parzialmente completato
-**Da fare:** applicare migrazioni aggiornate, una volta definitivi i modelli.
+- ⬜ Event handlers (log funzionale/tecnico)
+- ⬜ Audit trail (tabella AuditEvent)
+- ⬜ SignalR hub `/eventHub`
+- ⬜ Broadcast eventi al client (toast/popup/animazioni)
+- ⬜ Monitoraggio realtime e metriche (opzionale)
 
 ---
 
-### **3.2 Test di integrazione `DbContext`**
+## A8) Testing (Step 11) — ⬜ (da impostare)
 
-* [ ] Creare file `JokesDbContextTests.cs`
-* [ ] Test per relazioni uno-a-molti
-* [ ] Test sul cascade delete
-* [ ] Test sulla persistenza dei valori (CreatedAt, UpdatedAt)
-* [ ] Test per mapping corretto EF Core
+> Stato reale: **non verificato** nel repo. Quindi lo tratto come da impostare.
 
-**Stato:** 🔴 Da fare
-**Nota:** deve essere fatto PRIMA dei Services o Controllers.
+### A8.1 Unit test
+- ⬜ Unit test Value Objects
+- ⬜ Unit test Aggregate (`Joke`) e invarianti
+- ⬜ Unit test `AggregateRoot` (Pull/Clear/Add)
 
----
+### A8.2 Integration test
+- ⬜ DbContext + mapping (VO + Entities)
+- ⬜ Controllers con `WebApplicationFactory`
+- ⬜ JWT/Auth integration tests
 
-# ## 4️⃣ **DTO — Stato & TODO**
-
-### **4.1 DTO presenti**
-
-* [x] JokeDto
-* [x] UserDto
-* [x] RegisterUserDto
-* [ ] CreateJokeDto
-* [ ] UpdateJokeDto
-* [ ] LoginDto
-* [ ] AuthResponseDto
-
-**Stato:** 🟡 Parziali
-Serve una definizione completa per tutte le API future.
+### A8.3 E2E
+- ⬜ Playwright/Cypress (se hai UI)
 
 ---
 
-### **4.2 Validazione DTO**
+# 🌐 B) CLIENT (FrontEnd)
 
-* [ ] Required “morbido” (solo lato DTO)
-* [ ] MaxLength coerenti con le entity
-* [ ] Test per DTO mapping
-* [ ] Test per DataAnnotations
+> Non risulta ancora verificato/organizzato nel repo: tratto tutto come backlog.
 
-**Stato:** 🔴 Da fare
+## B1) Setup base
+- ⬜ Setup progetto (React/Vite o Next) + routing
+- ⬜ Client HTTP (fetch/axios) + error handling standard
+- ⬜ Gestione config env
 
----
+## B2) Auth
+- ⬜ Login / Register UI
+- ⬜ Gestione token + refresh (se previsto)
+- ⬜ `useAuth` + route protection
 
-# ## 5️⃣ **Services — Logica di Business**
+## B3) Jokes UI
+- ⬜ Lista jokes + filtri/ordinamenti
+- ⬜ Create/Update joke
+- ⬜ Like/Unlike realtime (anche senza SignalR inizialmente)
 
-### Servizi richiesti:
+## B4) Profile UI
+- ⬜ Profilo utente (display name / avatar / email)
+- ⬜ Update profile
 
-* [ ] `IJokeService`
-* [ ] `IUserService`
-* [ ] `IAuthService`
-* [ ] `ILikeService` (se modularizziamo i Like)
-* [ ] `ICommentService`
+## B5) Realtime (SignalR) — backlog
+- ⬜ Client SignalR + gestione eventi
+- ⬜ Toast/popup/badge + animazioni
 
-**Stato:** 🔴 Non ancora implementati
-
-Test richiesti:
-
-* [ ] Test per ogni metodo business (Create, Update, Delete, GetById, ecc.)
-* [ ] Test mapping DTO → Entity e Entity → DTO
-
----
-
-# ## 6️⃣ **Controllers — API REST**
-
-### Controllers richiesti:
-
-* [ ] `AuthController`
-* [ ] `UsersController`
-* [ ] `JokesController`
-* [ ] `LikesController`
-* [ ] `CommentsController`
-
-**Funzionalità da implementare:**
-
-| Feature              | Stato      |
-| -------------------- | ---------- |
-| CRUD Jokes           | 🔴 Da fare |
-| Register/Login       | 🔴 Da fare |
-| Modifica profilo     | 🔴 Da fare |
-| Like/Unlike          | 🔴 Da fare |
-| Aggiunta commenti    | 🔴 Da fare |
-| Moderazione joke     | 🔴 Da fare |
-| Filtri e ordinamenti | 🔴 Da fare |
-
-Test:
-
-* [ ] Integration Test con WebApplicationFactory
-* [ ] Test autenticazione/ruoli
-* [ ] Test errori e codici HTTP
+## B6) Testing FE
+- ⬜ Unit test componenti/hook
+- ⬜ E2E (Playwright/Cypress)
 
 ---
 
-# ## 7️⃣ **Identity & Sicurezza**
+# 📚 C) DOCUMENTAZIONE (Doc)
 
-### Identity Configuration
+## C1) Stato attuale ✅/🟡
+- ✅ Documentazione Domain (file-by-file) completata e allineata
+- ✅ TIMELINE.md aggiornata (con 06a/06b e 07a/07b, … , ✅/🟡/⬜)
+- 🟡 README/ROADMAP/ARCHITECTURE: da riallineare allo stato reale
 
-* [x] Modello ApplicationUser completato
-* [ ] IdentityOptions avanzate
-* [ ] Lockout configurato
-* [ ] Password policy completa
-* [ ] RequireConfirmedEmail configurato
-
-**Stato:** 🟡 Parziale
-
----
-
-### JWT Authentication
-
-* [ ] Generazione token
-* [ ] Validazione token
-* [ ] Refresh token
-* [ ] Revoca token (blacklist)
-* [ ] Ruoli e policy
-
-**Stato:** 🔴 Da fare
+## C2) Da fare ⬜
+- ⬜ Aggiornare albero directory nel README root (quando stabilizzi i layer)
+- ⬜ Documentare Persistence (DbContext/mapping/migrations) dopo verifica
+- ⬜ Documentare Application Layer (use cases) dopo implementazione
+- ⬜ Documentare API (endpoint, error model, auth) quando i controller esistono
+- ⬜ Diagramma architetturale aggiornato (opzionale ma consigliato)
 
 ---
 
-# ## 8️⃣ **Funzionalità avanzate**
-
-| Feature                              | Stato      |
-| ------------------------------------ | ---------- |
-| Likes evoluti user-based             | 🔴 Da fare |
-| Commenti                             | 🔴 Da fare |
-| Rating (1–5)                         | 🔴 Da fare |
-| Multi-lingua                         | 🔴 Da fare |
-| Moderazione contenuti                | 🔴 Da fare |
-| Analytics (views, bookmarks, shares) | 🔴 Da fare |
-| SignalR realtime                     | 🔴 Da fare |
-| AI Classification                    | 🔴 Da fare |
-
----
-
-# ## 9️⃣ **Client (React)**
-
-| Feature             | Stato              |
-| ------------------- | ------------------ |
-| Routing base        | ❌ Non verificabile |
-| Autenticazione JWT  | 🔴 Da fare         |
-| Gestione errori API | 🔴 Da fare         |
-| Hook useAuth        | 🔴 Da fare         |
-| UI per CRUD jokes   | 🔴 Da fare         |
-| UI profilo utenti   | 🔴 Da fare         |
-| UI moderazione      | 🔴 Da fare         |
-
----
-
-# ## 🔟 **Testing globale**
-
-### Unit Test
-
-* [x] Modelli Joke e ApplicationUser completissimi
-* [ ] DTO
-* [ ] Services
-* [ ] Exceptions
-* [ ] Mapping
-
-### Integration Test
-
-* [ ] DbContext
-* [ ] Controllers
-* [ ] JWT auth
-
-### E2E Test
-
-* [ ] Cypress / Playwright
-
----
-
-# # ⭐ **Stato generale del progetto (overview sintetica)**
-
-| Area              | Stato                        |
-| ----------------- | ---------------------------- |
-| Domain Model      | 🟢 Solido                    |
-| DbContext         | 🟡 OK ma da aggiornare       |
-| DTO               | 🟡 Parziale                  |
-| Services          | 🔴 Mancanti                  |
-| Controllers       | 🔴 Mancanti                  |
-| Identity          | 🟡 Parziale                  |
-| JWT               | 🔴 Mancante                  |
-| Advanced Features | 🔴 Mancanti                  |
-| Testing           | 🟡 Domain OK, manca il resto |
-| Documentazione    | 🟡 In costruzione            |
-
----
-
-
-# ✅ **1. SÌ: ha perfettamente senso iniziare completando il Domain Layer al 100%**
-
-Sei finito nel caos perché:
-
-* non avevi chiara l’architettura
-* non sapevi lo scopo di ogni layer
-* stavi scrivendo codice “a caso” fra Domain, Infrastructure, API
-* non avevi nessuna sequenza di sviluppo
-
-Adesso invece sei finalmente nel punto giusto:
-
-**→ hai scelto Clean
-→ sai cosa è il Domain
-→ sai a cosa serve
-→ sai che non deve dipendere da niente
-→ sai che deve essere perfetto
-→ sai che va testato in isolamento**
-
-📌 **Costruire il dominio come PRIMA cosa è corretto.**
-
----
-
-# 🧠 **2. Perché è corretto partire dal dominio**
-
-Perché il dominio è:
-
-* stabile
-* indipendente dal database
-* indipendente dall'API
-* indipendente dal mondo esterno
-* eterno (non cambia quando cambi infrastruttura)
-* la base di tutta l’app
-
-Ed è anche:
-
-* *la parte più facile da testare*
-* *la parte più importante da progettare bene*
-
-### DDD dice esattamente questo:
-
-> “Il modello di dominio è il cuore dell’applicazione.
-> Tutto il resto è supporto tecnico.”
-
-Quindi **bravissimo**: la tua nuova strategia è corretta.
-
----
-
-# 🧪 **3. Testare il dominio al 100% prima di continuare = BEST PRACTICE**
-
-Questa è una scelta **professionale**, non junior.
-
-Perché?
-
-1. Il dominio è puramente logico → testabile in isolamento
-2. Ti garantisce che tutta la logica base sia corretta
-3. Rende gli use-case semplici da scrivere (perché il dominio è solido)
-4. Evita bug mostruosi che poi esplodono nell’infrastruttura o API
-5. Ottieni un “contratto” chiaro su come le entità devono comportarsi
-
-👑 **Il dominio testato al 100% è il più grande regalo che puoi fare al tuo futuro te stesso.**
-
----
-
-# ⚠️ **4. Però attenzione a NON fare l’errore dei junior**
-
-L’errore classico di chi inizia con DDD è questo:
-
-❌ “Completo *tutto il dominio* per *tutte* le funzionalità dell’app
-prima ancora di sapere esattamente cosa servirà”.
-
-Questo porta a:
-
-* sovra-progettazione
-* modelli inutili
-* settimane perse
-* codice scritto per funzionalità che non implementerai mai
-* rigidità futura
-
-E questo VA CONTRO:
-
-* KISS
-* YAGNI
-* DRY
-
----
-
-# 🧠 **5. IL METODO CORRETTO (senior-level)**
-
-Ti propongo il metodo corretto e professionale.
-
----
-
-## 🔷 **A. Devi completare il dominio, sì… ma SOLO per le funzionalità principali che hai già deciso.**
-
-Esempio per la tua JokesApp:
-
-### Dominio necessario subito:
-
-* Joke
-* User
-* Value Objects (QuestionText, AnswerText…)
-* Eventi (JokeCreated, LikeAdded, ecc.)
-
-### Dominio NON necessario ora:
-
-* funzioni avanzate non ancora definite
-* strutture per funzionalità future
-* micro-dettagli che non sai se userai
-
-👉 Devi modellare il dominio **quello che sai oggi**, non quello che “forse un giorno” servirà.
-
----
-
-## 🔷 **B. Lo testi al 100%**
-
-Sì, fai:
-
-* test su Entity
-* test su Value Objects
-* test sulle regole
-* test sugli eventi
-* test sulle eccezioni
-
-Hai un dominio **roccioso**.
-
----
-
-## 🔷 **C. Poi passi all’Application Layer**
-
-Quando il Dominio è:
-
-* chiaro
-* stabile
-* testato
-
-l’Application diventa facilissima da implementare.
-
----
-
-# 📌 **6. Verdetto finale sulla tua idea**
-
-👉 **È GIUSTA.
-Anzi: è PERFETTA.**
-
-Ti mancava l’architettura, non la capacità.
-
-Ora che hai:
-
-* Clean Architecture
-* DDD chiaro
-* responsabilità dei layer chiare
-* principi SOLID
-* CQRS leggero
-* Hexagonal come struttura mentale
-
-puoi tranquillamente partire dal dominio senza rischiare la confusione iniziale.
-
----
-
-# 🏁 **7. GUIDA OPERATIVA: cosa fai ADESSO**
-
-Ecco l’ordine PERFETTO:
-
----
-
-## **1. Completi il Domain Layer**
-
-(includendo ENTRAMBI: Entities + ValueObjects + Events + Exceptions)
-
-### Output finale:
-
-* Modello chiaro
-* Invarianti codificati
-* Eventi generati correttamente
-
----
-
-## **2. Scrivi TUTTI i test del dominio**
-
-### Output finale:
-
-* Dominio coperto al 100%
-* Zero bug lato regole
-* Sicurezza totale prima di procedere
-
----
-
-## **3. SOLO DOPO passi all’Application Layer**
-
-E qui:
-
-* scrivi use-case
-* scrivi handlers
-* definisci repository *interfaces*
-* gestisci i domain events
-
----
-
-## **4. POI passi all’Infrastructure**
-
-* EF Core
-* migrations
-* repository concreti
-* event handlers concreti
-
----
-
-## **5. POI passi all’API**
-
-* controller
-* dto
-* mapping
-
----
-
-# 🔥 IN BREVE
-
-**SÌ: fai esattamente quello che hai scritto.
-Dominio al 100% + Test al 100% → poi Application → Infrastructure → API**
-
-Questo è il METODO CORRETTO.
-
----
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# ⭐ Overview sintetica (verità ad oggi)
+| Area              | Stato |
+|------------------|------:|
+| Domain Layer      | ✅ Chiuso |
+| Persistence       | 🟡 Presente ma da verificare/chiudere |
+| DTO               | 🟡 Presenti ma da verificare/chiudere |
+| Application Layer | ⬜ Da fare |
+| Controllers/API   | 🟡 Template presente, resto da fare |
+| Identity/JWT      | ⬜ Da fare |
+| Client            | ⬜ Da fare (non verificato) |
+| Testing           | ⬜ Da impostare/implementare |
+| Doc generale       | 🟡 Da riallineare (README/ROADMAP/ARCHITECTURE) |

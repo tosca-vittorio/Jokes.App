@@ -26,16 +26,12 @@ All’interno del modello:
 
 Per i dettagli sui principali Value Object utilizzati da `Joke` si vedano:
 
-- `04_QuestionText.md`
-- `04_AnswerText.md`
-- `04_JokeId.md`
-- `04_UserId.md`
+- `04a_QuestionText.md`
+- `04a_AnswerText.md`
+- `04a_JokeId.md`
+- `04a_UserId.md`
 
-`Joke` appartiene al **Domain Layer** e non conosce:
-
-- Entity Framework,
-- JSON, DTO o binding HTTP,
-- dettagli di persistenza o protocolli.
+`Joke` appartiene al **Domain Layer** e non dipende da Entity Framework/HTTP/JSON/DTO.
 
 Tali elementi sono delegati ad Application/Data layer, che si limitano a **mappare**
 lo stato della `Joke` verso l’esterno.
@@ -49,7 +45,7 @@ La classe è definita in:
 ```csharp
 namespace JokesApp.Server.Domain.Entities
 {
-    public class Joke
+    public sealed class Joke : AggregateRoot
     {
         // ...
     }
@@ -89,7 +85,7 @@ public QuestionText Question { get; private set; }
 public AnswerText Answer { get; private set; }
 public UserId ApplicationUserId { get; private set; }
 public ApplicationUser? Author { get; private set; }
-public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+public DateTime CreatedAt { get; private set; }
 public DateTime? UpdatedAt { get; private set; }
 public int Likes { get; private set; }
 ```
@@ -100,7 +96,7 @@ Gli **invarianti** garantiti dal dominio sono:
 
    * `Question` e `Answer` vengono passati come `QuestionText` e `AnswerText`.
    * Le loro regole (non null, non vuoti, lunghezza massima, ecc.) sono già verificate
-     a monte dai rispettivi VO (vedi `04_QuestionText.md` e `04_AnswerText.md`).
+     a monte dai rispettivi VO (vedi `04a_QuestionText.md` e `04a_AnswerText.md`).
 
 2. **Question e Answer non possono essere identiche**
 
@@ -112,7 +108,8 @@ Gli **invarianti** garantiti dal dominio sono:
        if (string.Equals(q.Value, a.Value, StringComparison.OrdinalIgnoreCase))
        {
            throw new DomainValidationException(
-               JokeErrorMessages.QuestionAndAnswerCannotMatch);
+              JokeErrorMessages.QuestionAndAnswerCannotMatch,
+              nameof(Question));
        }
    }
    ```
@@ -127,18 +124,19 @@ Gli **invarianti** garantiti dal dominio sono:
 
    * `ApplicationUserId` è di tipo `UserId`.
    * Le regole di validazione (non nullo, non vuoto, lunghezza massima, ecc.) sono incapsulate
-     nel VO `UserId` (vedi `04_UserId.md`), non nell’entità.
+     nel VO `UserId` (vedi `04a_UserId.md`), non nell’entità.
 
 4. **Coerenza autore ↔ ApplicationUserId (quando l’autore è presente)**
 
    * La proprietà di navigazione `Author` è opzionale e rappresenta un **enrichment**:
      l’entità `Joke` può essere perfettamente valida anche con `Author == null`,
      purché `ApplicationUserId` sia coerente e valido.
-   * Quando `Author` viene valorizzato, `SetAuthor` garantisce che:
 
-     * l’istanza non sia nulla,
-     * l’autore non sia già stato impostato,
-     * `author.Id` corrisponda a `ApplicationUserId.Value`.
+   * Quando `Author` viene valorizzato, `SetAuthor` garantisce che:
+     * l’istanza non sia nulla;
+     * l’`Id` dell’autore non sia vuoto (`author.Id.IsEmpty == false`);
+     * l’autore non sia già stato impostato;
+     * `author.Id` sia coerente con `ApplicationUserId` (confronto tra due `UserId` tipizzati).
 
    In altre parole, l’invariante “forte” del dominio riguarda **sempre** `ApplicationUserId`;
    `Author` è un riferimento aggiuntivo che deve essere coerente *se e solo se* è valorizzato.
@@ -157,20 +155,55 @@ Gli **invarianti** garantiti dal dominio sono:
 La classe espone due costruttori:
 
 ```csharp
-protected Joke() { } // Per EF o strumenti di persistenza
+/// <summary>
+/// Costruttore protetto richiesto dagli strumenti di persistenza (es. ORM/strumenti di persistenza).
+/// Non deve essere utilizzato manualmente nel codice di dominio.
+/// </summary>
+protected Joke()
+{
+}
 
+/// <summary>
+/// Costruttore principale del dominio.
+/// Esegue validazioni, assegna i Value Objects e genera un evento di creazione.
+/// </summary>
+/// <param name="question">Value Object contenente la domanda.</param>
+/// <param name="answer">Value Object contenente la risposta.</param>
+/// <param name="userId">Identificatore tipizzato dell'autore.</param>
 public Joke(QuestionText question, AnswerText answer, UserId userId)
 {
+    if (question is null || question.IsEmpty)
+    {
+        throw new DomainValidationException(
+            JokeErrorMessages.QuestionNullOrEmpty,
+            nameof(question));
+    }
+
+    if (answer is null || answer.IsEmpty)
+    {
+        throw new DomainValidationException(
+            JokeErrorMessages.AnswerNullOrEmpty,
+            nameof(answer));
+    }
+
+    if (userId.IsEmpty)
+    {
+        throw new DomainValidationException(
+            ApplicationUserErrorMessages.UserIdNullOrEmpty,
+            nameof(userId));
+    }
+
     EnsureQuestionAndAnswerAreDifferent(question, answer);
 
+    Id = JokeId.New();
     Question = question;
     Answer = answer;
     ApplicationUserId = userId;
     CreatedAt = DateTime.UtcNow;
 
-    // L’Id reale sarà assegnato dal livello di persistenza.
+    // Con Id domain-generated, l'evento "Created" deve nascere già con un identificatore reale.
     AddDomainEvent(new JokeWasCreated(
-        JokeId.Empty,
+        Id,
         ApplicationUserId,
         Question,
         Answer,
@@ -178,18 +211,17 @@ public Joke(QuestionText question, AnswerText answer, UserId userId)
 }
 ```
 
-* Il **costruttore protetto** è pensato per gli ORM (es. EF Core) o altri strumenti di persistenza
+* Il **costruttore protetto** è pensato per gli ORM (es. ORM / strumenti di persistenza) o altri strumenti di persistenza
   e non dovrebbe essere usato nell’Application Layer.
 * Il **costruttore di dominio**:
 
   * richiede Value Object già validi (`QuestionText`, `AnswerText`, `UserId`);
   * applica la regola “question e answer sono diverse”;
   * inizializza `CreatedAt` in UTC;
-  * registra un evento di dominio `JokeWasCreated` con `JokeId.Empty` come placeholder,
-    in attesa dell’assegnazione dell’Id reale da parte del Data Layer.
+  * registra un evento `JokeWasCreated` con l’`Id` **reale** generato nel dominio tramite `JokeId.New()`, così da averlo disponibile subito (es. per Domain Events)..
 
 Per i dettagli su `JokeWasCreated` e sugli altri eventi di dominio, si veda la documentazione
-del sottosistema eventi (`Domain/Events`, es. `01_DomainEvent.md`, `01_JokeWasCreated.md`).
+del sottosistema eventi (`Domain/Events`).
 
 ---
 
@@ -209,12 +241,21 @@ public void SetAuthor(ApplicationUser author)
             nameof(author));
     }
 
+    // L'utente associato deve avere un identificativo valido (non vuoto).
+    if (author.Id.IsEmpty)
+    {
+        throw new DomainValidationException(
+            ApplicationUserErrorMessages.UserIdNullOrEmpty,
+            nameof(author));
+    }
+
     if (Author is not null)
     {
         throw new DomainOperationException(JokeErrorMessages.AuthorAlreadySet);
     }
 
-    if (author.Id != ApplicationUserId.Value)
+    // Confronto tra due UserId tipizzati
+    if (!author.Id.Equals(ApplicationUserId))
     {
         throw new DomainValidationException(
             JokeErrorMessages.AuthorIdMismatch,
@@ -230,14 +271,18 @@ public bool IsAuthoredBy(UserId userId)
 
 Regole applicate da `SetAuthor`:
 
-1. **Autore non nullo**
+1. **Autore non nullo**  
    → `DomainValidationException(AuthorNull)` se `author` è `null`.
 
-2. **Autore assegnato una sola volta**
+2. **UserId dell’autore non vuoto**  
+   → `DomainValidationException(UserIdNullOrEmpty)` se `author.Id.IsEmpty` è `true`.
+
+3. **Autore assegnato una sola volta**  
    → `DomainOperationException(AuthorAlreadySet)` se `Author` è già valorizzato.
 
-3. **Consistenza tra AuthorId e ApplicationUserId**
-   → `DomainValidationException(AuthorIdMismatch)` se `author.Id != ApplicationUserId.Value`.
+4. **Coerenza tra Author.Id e ApplicationUserId**  
+   → `DomainValidationException(AuthorIdMismatch)` se `!author.Id.Equals(ApplicationUserId)`.
+
 
 `IsAuthoredBy(UserId)` fornisce un modo chiaro per verificare la proprietà della joke
 rispetto a un utente ed è utilizzato anche in altre operazioni (es. `Update`).
@@ -256,8 +301,38 @@ rispetto a un utente ed è utilizzato anche in altre operazioni (es. `Update`).
 ### 5.6.1 Aggiornamento del contenuto (`Update`)
 
 ```csharp
+/// <summary>
+/// Aggiorna la barzelletta sostituendo domanda e risposta dopo le opportune validazioni.
+/// Genera un evento di aggiornamento.
+/// </summary>
+/// <param name="userId">Identificatore dell'utente che richiede l'aggiornamento.</param>
+/// <param name="question">Nuovo testo della domanda.</param>
+/// <param name="answer">Nuovo testo della risposta.</param>
 public void Update(UserId userId, QuestionText question, AnswerText answer)
 {
+    EnsureIdIsInitialized();
+
+    if (question is null || question.IsEmpty)
+    {
+        throw new DomainValidationException(
+            JokeErrorMessages.QuestionNullOrEmpty,
+            nameof(question));
+    }
+
+    if (answer is null || answer.IsEmpty)
+    {
+        throw new DomainValidationException(
+            JokeErrorMessages.AnswerNullOrEmpty,
+            nameof(answer));
+    }
+
+    if (userId.IsEmpty)
+    {
+        throw new DomainValidationException(
+            ApplicationUserErrorMessages.UserIdNullOrEmpty,
+            nameof(userId));
+    }
+
     if (!IsAuthoredBy(userId))
     {
         throw new UnauthorizedDomainOperationException(JokeErrorMessages.UpdateNotAllowed);
@@ -296,6 +371,8 @@ Qui confluiscono:
 ```csharp
 public void AddLike()
 {
+    EnsureIdIsInitialized();
+
     if (Likes == int.MaxValue)
     {
         throw new DomainOperationException(JokeErrorMessages.MaximumLikeOfJokeReached);
@@ -310,6 +387,8 @@ public void AddLike()
 
 public void RemoveLike()
 {
+    EnsureIdIsInitialized();
+
     if (Likes == 0)
     {
         throw new DomainOperationException(JokeErrorMessages.MinimumLikeOfJokeReached);
@@ -338,51 +417,18 @@ Regole:
 
 ## 5.7 Gestione degli eventi di dominio
 
-All’interno della classe è presente una lista interna di eventi:
+La gestione della coda degli eventi di dominio non è implementata direttamente dentro `Joke`,
+ma è demandata alla base class `AggregateRoot` (Domain/Primitives).
 
-```csharp
-private readonly List<IDomainEvent> _domainEvents = new();
-
-public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
-```
-
-Metodi ausiliari:
-
-```csharp
-private void AddDomainEvent(IDomainEvent domainEvent)
-{
-    if (domainEvent is null)
-    {
-        throw new ArgumentNullException(nameof(domainEvent));
-    }
-
-    _domainEvents.Add(domainEvent);
-}
-
-public IReadOnlyCollection<IDomainEvent> PullDomainEvents()
-{
-    var events = _domainEvents.ToList();
-    _domainEvents.Clear();
-    return events.AsReadOnly();
-}
-
-public void ClearDomainEvents() => _domainEvents.Clear();
-```
+L’aggregate:
+- genera eventi significativi (`JokeWasCreated`, `JokeWasUpdated`, `JokeWasLiked`, `JokeWasUnliked`)
+  tramite `AddDomainEvent(...)`;
+- espone la coda tramite `DomainEvents` (read-only);
+- consente all’Application Layer di estrarre e svuotare la coda tramite `PullDomainEvents()` dopo la persistenza.
 
 Pattern adottato:
-
-* l’entità **accumula** gli eventi di dominio in `_domainEvents` quando avvengono azioni significative
-  (`Create`, `Update`, `AddLike`, `RemoveLike`);
-* l’Application Layer, dopo aver gestito il caso d’uso, chiama `PullDomainEvents()`:
-
-  * ottiene la lista degli eventi generati,
-  * li pubblica tramite un dispatcher (es. bus interno, handler, SignalR, ecc.),
-  * lascia l’entità “pulita” (la lista interna viene svuotata).
-
-In questo modo:
-
-* il Domain Layer non conosce il meccanismo di pubblicazione degli eventi,
-* il flusso **event sourcing-like** è integrato in modo naturale con Clean Architecture.
+- il Domain Layer **accumula** gli eventi;
+- l’Application Layer **pubblica/dispatcha** gli eventi e poi “ripulisce” la coda (pull/clear).
 
 ---
 
@@ -391,6 +437,7 @@ In questo modo:
 ```csharp
 public void ValidateIntegrity()
 {
+    EnsureIdIsInitialized();
     EnsureQuestionAndAnswerAreDifferent(Question, Answer);
 }
 ```
@@ -402,7 +449,7 @@ public void ValidateIntegrity()
 * controlli diagnostici,
 
 per verificare che lo stato interno dell’entità continui a rispettare gli invarianti
-di dominio (in questo caso, che `Question` e `Answer` non siano identiche).
+di dominio (in questo caso: `Id` inizializzato e `Question`/`Answer` non identiche).
 
 In futuro, se gli invarianti aumentano, è il posto naturale dove centralizzare
 i controlli ad alto livello.
