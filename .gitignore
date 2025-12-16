@@ -9,6 +9,7 @@ obj/
 .vs/
 *.user
 *.suo
+*.csproj.user
 
 # Logs
 *.log
@@ -16,7 +17,7 @@ obj/
 # Configurazioni locali (segreti)
 appsettings.Development.json
 appsettings.Local.json
-launchSettings.json
+**/Properties/launchSettings.json
 
 # Database locali
 *.db
@@ -42,7 +43,10 @@ dist/
 ################################################
 ### 🔹 SEZIONE 3 — Env & Secrets backend
 
+# Env backend (e in generale)
 **/*.env
+**/.env
+**/.env.*
 
 ################################################
 ### 🔹 SEZIONE 4 — Editor & IDE (VS Code, JetBrains)
@@ -51,7 +55,6 @@ dist/
 .vscode/
 !.vscode/extensions.json
 *.rsuser
-
 
 # JetBrains / Rider
 .idea/
@@ -72,6 +75,8 @@ Desktop.ini
 *.backup
 **/BackupSQL/
 
-
+# Vim swap
 *.swp
+
+# File di lavoro locali
 struttura.txt
