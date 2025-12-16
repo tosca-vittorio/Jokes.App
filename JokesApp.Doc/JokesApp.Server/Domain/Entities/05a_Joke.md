@@ -54,13 +54,13 @@ namespace JokesApp.Server.Domain.Entities
 
 Dipende esclusivamente da:
 
-* **BCL**: `System`, `System.Collections.Generic`, `System.Linq`;
+* **BCL**: `System`, `System.Collections.Generic`;
 * **Domain Layer**:
 
   * `JokesApp.Server.Domain.ValueObjects` → `JokeId`, `QuestionText`, `AnswerText`, `UserId`;
   * `JokesApp.Server.Domain.Events` → `IDomainEvent`, `JokeWasCreated`, `JokeWasUpdated`,
     `JokeWasLiked`, `JokeWasUnliked`;
-  * `JokesApp.Server.Domain.Errors` → `JokeErrorMessages` (cfr. `03_JokeErrorMessages.md`);
+  * `JokesApp.Server.Domain.Errors` → `JokeErrorMessages`, `ApplicationUserErrorMessages`;
   * `JokesApp.Server.Domain.Exceptions` → `DomainValidationException`,
     `DomainOperationException`, `UnauthorizedDomainOperationException`
     (cfr. `01_DomainValidationException.md`, `01_DomainOperationException.md`,
@@ -156,12 +156,13 @@ La classe espone due costruttori:
 
 ```csharp
 /// <summary>
-/// Costruttore protetto richiesto dagli strumenti di persistenza (es. ORM/strumenti di persistenza).
-/// Non deve essere utilizzato manualmente nel codice di dominio.
+/// Costruttore richiesto da EF Core.
 /// </summary>
-protected Joke()
+private Joke()
 {
+    // EF Core only
 }
+
 
 /// <summary>
 /// Costruttore principale del dominio.
@@ -211,8 +212,9 @@ public Joke(QuestionText question, AnswerText answer, UserId userId)
 }
 ```
 
-* Il **costruttore protetto** è pensato per gli ORM (es. ORM / strumenti di persistenza) o altri strumenti di persistenza
-  e non dovrebbe essere usato nell’Application Layer.
+* Il **costruttore privato** è pensato per gli ORM (es. ORM / strumenti di persistenza) o altri strumenti di persistenza
+  e non dovrebbe essere usato nell’Application Layer. Richiesto da EF Core
+
 * Il **costruttore di dominio**:
 
   * richiede Value Object già validi (`QuestionText`, `AnswerText`, `UserId`);
