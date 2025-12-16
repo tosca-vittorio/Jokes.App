@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using JokesApp.Server.Domain.Errors;
 using JokesApp.Server.Domain.Events;
 using JokesApp.Server.Domain.Exceptions;
@@ -136,6 +135,7 @@ namespace JokesApp.Server.Domain.Entities
         /// <param name="author">Istanza di <see cref="ApplicationUser"/> da associare.</param>
         public void SetAuthor(ApplicationUser author)
         {
+            EnsureIdIsInitialized();
             if (author is null)
             {
                 throw new DomainValidationException(
@@ -147,7 +147,7 @@ namespace JokesApp.Server.Domain.Entities
             {
                 throw new DomainValidationException(
                     ApplicationUserErrorMessages.UserIdNullOrEmpty,
-                    nameof(author));
+                    nameof(author.Id)); // oppure nameof(ApplicationUser.Id)
             }
 
             if (Author is not null)
@@ -159,7 +159,7 @@ namespace JokesApp.Server.Domain.Entities
             {
                 throw new DomainValidationException(
                     JokeErrorMessages.AuthorIdMismatch,
-                    nameof(author));
+                    nameof(author.Id)); // oppure nameof(ApplicationUserId)
             }
 
             Author = author;
