@@ -15,10 +15,10 @@ Serve a:
 1) **Architettura globale (fonte di verità)**  
    → `./ARCHITECTURE.md`
 
-2) **Pattern + motivazioni + trade-off**  
+2) **Pattern + motivazioni**  
    → `./DESIGN_PATTERNS.md`
 
-3) **Regole operative (Git + doc + qualità)**  
+3) **Regole operative**  
    → `./WORKFLOW.md`
 
 4) **Direzione e milestone (TO-BE dichiarato)**  
@@ -60,10 +60,10 @@ Serve a:
 ### 📌 Documenti globali (root `JokesApp.Doc/`)
 - `ARCHITECTURE.md` — architettura globale, confini, dependency rule, AS-IS vs TO-BE
 - `DESIGN_PATTERNS.md` — pattern adottati e motivazioni
-- `WORKFLOW.md` — regole operative (doc + git + qualità)
+- `WORKFLOW.md` — regole operative 
 - `ROADMAP.md` — direzione e milestone
 - `toDo.md` — task operative verificabili
-- `README.md` — (questo file) navigazione e regole
+- `README.md` — navigazione e regole (questo file)
 
 ### 🔴 Backend — `JokesApp.Doc/JokesApp.Server/`
 Entry-point principali:
@@ -109,10 +109,10 @@ Regola: **un documento = uno scopo**. Se un contenuto “stona” nel file corre
 - **Scelte architetturali globali, confini, dependency rule, AS-IS vs TO-BE**
   → `ARCHITECTURE.md`
 
-- **Pattern, motivazioni, alternative scartate, trade-off**
+- **Pattern, motivazioni, alternative scartate**
   → `DESIGN_PATTERNS.md`
 
-- **Processo di lavoro: branching, commit, regole doc, checklist**
+- **Processo di lavoro**
   → `WORKFLOW.md`
 
 - **Milestone e direzione (con TO-BE dichiarato)**
@@ -196,6 +196,5 @@ Aggiorna **anche** i documenti globali solo se:
 - Torna all’entrypoint del repo: `../README.md`
 - Architettura globale: `./ARCHITECTURE.md`
 - Sequenza operativa server: `./JokesApp.Server/TIMELINE.md`
-
 
 ---
