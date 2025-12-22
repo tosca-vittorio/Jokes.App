@@ -61,20 +61,12 @@ Dettagli e scelte: [JokesApp.Doc/ARCHITECTURE.md](JokesApp.Doc/ARCHITECTURE.md)
 
 ---
 
-## 🔎 Entry-point utili
-
-* Server changelog: [JokesApp.Server/CHANGELOG.md](JokesApp.Server/CHANGELOG.md)
-* Client changelog: [JokesApp.Client/CHANGELOG.md](JokesApp.Client/CHANGELOG.md)
-* API scratch file: [JokesApp.Server/JokesApp.Server.http](JokesApp.Server/JokesApp.Server.http)
-
----
-
 ## 🔧 Prerequisiti
 
 * **.NET SDK** (per `JokesApp.Server` e `JokesApp.Tests`)
 * **Node.js + npm** (per `JokesApp.Client`)
 
-> Repo hygiene: non versionare artefatti locali come `node_modules/`, `bin/`, `obj/`, `dist/`, file `.env` con segreti, backup e file user-specific.
+> Repo hygiene: artefatti locali come `node_modules/`, `bin/`, `obj/`, `dist/`, file `.env` con segreti, backup e file user-specific non versionati.
 
 ---
 
