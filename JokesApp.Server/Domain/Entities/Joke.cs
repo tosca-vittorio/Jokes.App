@@ -121,6 +121,10 @@ namespace JokesApp.Server.Domain.Entities
                 CreatedAt));
         }
 
+        /// <summary>
+        /// Factory di dominio per la creazione controllata dell'Aggregate.
+        /// Centralizza validazioni, invarianti e generazione dei Domain Events.
+        /// </summary>
         public static Joke Create(QuestionText question, AnswerText answer, UserId userId)
             => new(question, answer, userId);
 
