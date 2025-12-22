@@ -81,7 +81,7 @@ namespace JokesApp.Server.Domain.Entities
         /// <param name="question">Value Object contenente la domanda.</param>
         /// <param name="answer">Value Object contenente la risposta.</param>
         /// <param name="userId">Identificatore tipizzato dell'autore.</param>
-        public Joke(QuestionText question, AnswerText answer, UserId userId)
+        private Joke(QuestionText question, AnswerText answer, UserId userId)
         {
             if (question is null || question.IsEmpty)
             {
@@ -120,6 +120,9 @@ namespace JokesApp.Server.Domain.Entities
                 Answer,
                 CreatedAt));
         }
+
+        public static Joke Create(QuestionText question, AnswerText answer, UserId userId)
+            => new(question, answer, userId);
 
         #endregion
 
