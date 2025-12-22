@@ -1,37 +1,34 @@
-# 📘 **Architettura del Progetto: Linee Guida Teoriche e Strutturazione dei Layer**
+# 📘 Architettura del Progetto - React Frontend + ASP.NET Core Web API (Clean Architecture + DDD + Hexagonal)
 
-## 1. Introduzione generale
+Lo sviluppo di applicazioni moderne richiede l’adozione di modelli architetturali chiari, scalabili e in grado di mantenere la qualità del software anche in presenza di modifiche frequenti. Nel presente progetto didattico è stato scelto di adottare una combinazione consolidata e ampiamente utilizzata nel mondo enterprise.
 
-Lo sviluppo di applicazioni moderne richiede l’adozione di modelli architetturali chiari, scalabili e in grado di mantenere la qualità del software anche in presenza di modifiche frequenti.
-Nel presente progetto didattico è stato scelto di adottare una combinazione consolidata e ampiamente utilizzata nel mondo enterprise:
+Questo documento è la **fonte di verità architetturale** del progetto: descrive **confini, responsabilità, dipendenze** e lo stato **AS-IS / TO-BE**
+- **AS-IS**: ciò che esiste oggi nel repository.
+- **TO-BE**: direzione di evoluzione dichiarata (senza spacciare il futuro per presente).
 
-* **Clean Architecture** come struttura a layer indipendenti.
-* **Domain-Driven Design (DDD)** per la modellazione della logica di dominio.
-* **Hexagonal Architecture (Ports & Adapters)** per isolare il dominio dal mondo esterno.
-* Principi **SOLID**, **DRY**, **KISS**, **YAGNI** come linee guida di progettazione.
-* **CQRS leggero** per distinguere le operazioni di comando da quelle di lettura.
-
-L’obiettivo è ottenere un’architettura robusta, estensibile, ben testabile e allineata agli standard progettuali richiesti nell’industria software contemporanea.
+- Entry-point documentazione: `JokesApp.Doc/README.md`
+- Workflow repo: `JokesApp.Doc/WORKFLOW.md`
+- Stato operativo: `JokesApp.Doc/toDo.md`
+- Timeline (Server): `JokesApp.Doc/JokesApp.Server/TIMELINE.md`
 
 ---
 
-## 2. Stack tecnologico
-
+## 0. Stack tecnologico
 Lo stack tecnico definisce *gli strumenti*, non la loro organizzazione architetturale.
 Per il presente progetto:
 
 * **Backend:** ASP.NET Core
 * **Frontend:** React
-* **Database:** PostgreSQL / SQL Server tramite *Entity Framework Core*
+* **Database:** PostgreSQL tramite *Entity Framework Core*
 * **Template base:** “ASP.NET + React” fornito da Visual Studio
 
 Questo stack è compatibile con un’architettura a strati pulita e consente di separare efficacemente presentation, business logic e Persistent Storage.
 
 ---
 
-## 3. Paradigma architetturale adottato
+## 1. Paradigma architetturale adottato
 
-### 3.1 Significato di paradigma architetturale
+### 1.1 Significato di paradigma architetturale
 
 Uno *stile architetturale* definisce:
 
@@ -40,9 +37,7 @@ Uno *stile architetturale* definisce:
 * la **modalità di evoluzione del sistema**,
 * l’isolamento tra logica di business e dettagli tecnologici.
 
-Non riguarda dunque le singole classi o i pattern GoF, ma l’organizzazione concettuale alla base del backend.
-
-### 3.2 Scelte progettuali
+### 1.2 Scelte progettuali
 
 | Scelta                      | Stato | Motivazione                                                                 |
 | --------------------------- | ----- | --------------------------------------------------------------------------- |
@@ -52,9 +47,8 @@ Non riguarda dunque le singole classi o i pattern GoF, ma l’organizzazione con
 | **SOLID, DRY, KISS, YAGNI** | ✔️    | Migliorano qualità, leggibilità e manutenibilità                            |
 | **CQRS leggero**            | ✔️    | Semplifica separazione command/query senza introdurre complessità eccessiva |
 
----
 
-## 4. La struttura architetturale finale
+### 1.3 La struttura architetturale finale
 
 L’architettura completa adottata è composta da **sei macro-layer**, tipici dei sistemi enterprise:
 
@@ -65,444 +59,314 @@ L’architettura completa adottata è composta da **sei macro-layer**, tipici de
 5. **Cross-Cutting Layer**
 6. **Testing Layer**
 
-Le dipendenze sono *unidirezionali* e vanno dall’esterno verso l’interno:
+---
+
+## 2. Introduzione: Visione Architetturale Complessiva (VAC)
+
+### 2.1 Generale: 
+Il progetto **JokesApp** adotta un’architettura moderna, modulare e scalabile, basata su:
+
+* **Frontend React** sviluppato come **Single Page Application (SPA)**
+* **Backend ASP.NET Core Web API** progettato secondo i paradigmi:
+
+  * **Clean Architecture** come struttura a layer indipendenti.
+  * **Domain-Driven Design (DDD)** per la modellazione della logica di dominio.
+  * **Hexagonal Architecture (Ports & Adapters)** per isolare il dominio dal mondo esterno.
+  * Principi **SOLID**, **DRY**, **KISS**, **YAGNI** come linee guida di progettazione.
+  * **CQRS leggero** per distinguere le operazioni di comando da quelle di lettura.
+
+L’obiettivo è ottenere un’architettura robusta, estensibile, ben testabile e allineata agli standard progettuali richiesti nell’industria software contemporanea.
+
+Questa combinazione offre:
+* una **separazione netta** tra logica di presentazione e logica applicativa,
+* alta **manutenibilità**, **testabilità** e **scalabilità**,
+* possibilità di evolvere frontend e backend in modo indipendente,
+* struttura robusta e adatta a scenari enterprise.
+
+JokesApp è un **monorepo** composto da:
+- **Client**: React SPA (`JokesApp.Client`)
+- **Server**: ASP.NET Core Web API (`JokesApp.Server`)
+- **Tests**: test automatici (`JokesApp.Tests`)
+- **Doc**: documentazione (`JokesApp.Doc`)
+
+### 2.2 Architettura Backend
+Il backend segue un’impostazione **Clean Architecture + DDD + Ports & Adapters**.
+
+Obiettivi principali del backend:
+- Implementa logica applicativa e di dominio,
+- Fornisce esclusivamente API REST in formato JSON,
+- È strutturato secondo Clean Architecture.
+- Mantiene il **dominio indipendente** da HTTP/DB/framework (Clean Architecture + DDD “pragmatico”).
+- Rende espliciti confini e responsabilità (Ports & Adapters / Hexagonal come mental model).
+- Garantisce che la *codebase* risulti **testabile** (dominio testabile senza DB) e **manutenibile**.
+
+> Nota: “Hexagonal / Ports & Adapters” e “Clean Architecture” descrivono la stessa idea chiave:  
+> *il dominio e i casi d’uso non devono dipendere dai dettagli esterni.*
+
+### 2.3 Architettura Frontend (AS-IS / TO-BE)
+**AS-IS:** il frontend è presente come scaffold/template (React + Vite), ma non è ancora evoluto né validato architetturalmente.  
+**TO-BE:** React SPA con routing client-side e livello `services` per chiamate HTTP/JSON verso la Web API (nessuna logica di dominio lato client).
+
+---
+
+## 3. Principi guida (regole non negoziabili)
+
+L’applicazione segue un modello **API-Driven** via HTTP/JSON, con due componenti chiaramente distinti:
 
 ```
+[ React SPA ]  <—HTTP/JSON—>  [ ASP.NET Core Web API ]  <—EF Core—>  [ Database ]
+```
+
+- Il **Client** gestisce UI, routing e chiamate HTTP.
+- Il **Server** espone endpoint REST e contiene dominio + accesso dati.
+- Il **Database** è gestito via EF Core (migrations incluse).
+
+### 3.1 Dependency Rule (Clean Architecture)
+Le dipendenze devono puntare **verso l’interno (il dominio)**: il dominio non conosce dettagli infrastrutturali.
+
+Schema concettuale:
+
+```text
+Presentation (HTTP/API)
+        ↓
+Application (Use Cases, Ports)
+        ↓
+      Domain (Core)
+        ↑
+Infrastructure (EF Core, external services) — implementa Ports
+```
+
+Le dipendenze sono *unidirezionali* e vanno dall’esterno verso l’interno:
+
+```text
 API → Application → Domain
 Infrastructure ↗︎  Application
 ```
 
----
+### 3.2 Dominio “puro” (DDD pragmatico)
+Nel **Domain** vivono:
+- invarianti,
+- Entities / Aggregate Root,
+- Value Objects,
+- Domain Events,
+- Domain Exceptions e messaggistica di errore di dominio.
 
-## 5. Descrizione dei Layer
+Il dominio **non** deve contenere logica HTTP/Controller né concetti di persistenza.
 
----
+### 3.3 Contratti esterni tramite DTO
+L’API parla tramite **DTO**: non si espongono direttamente Entities/Value Objects oltre il boundary HTTP.
 
-### 🟦 5.1 Domain Layer — Il nucleo del sistema
-
-Il **Domain Layer** rappresenta la parte più stabile e duratura dell’applicazione.
-In esso risiede la logica di business pura, non influenzata da tecnologie esterne o infrastrutture.
-
-#### Responsabilità principali
-
-* Definizione delle **regole di dominio**
-* Modellazione di **Entità**, **Value Objects** e **Aggregate Roots**
-* Gestione degli **invarianti** del sistema
-* Pubblicazione di **Domain Events**
-* Validazioni profonde
-* Eccezioni specifiche di dominio
-
-#### Contenuto
-
-* **Entities** (es. `Joke`, `User`, ...)
-* **Value Objects** (es. `Email`, `UserId`, ...)
-* **Domain Events** (es. `JokeCreatedEvent`)
-* **Domain Services**
-* **Domain Exceptions**
-
-#### Elementi da escludere rigorosamente
-
-❌ Database
-❌ EF Core
-❌ Logging
-❌ Controller
-❌ HTTP, Serializzazione
-❌ Repository concreti
-
-#### Principio guida
-
-> Il Dominio non deve conoscere nulla del mondo esterno.
-> È *eterno*, stabile e immune ai cambiamenti tecnologici.
+### 3.4 CQRS leggero (quando serve)
+Separazione concettuale tra:
+- **Commands** (modificano stato),
+- **Queries** (leggono stato),
+senza introdurre complessità infrastrutturale (bus, event sourcing, ecc.) se non necessaria.
 
 ---
 
-### 🟩 5.2 Application Layer — L’orchestratore dei casi d’uso
+## 4. AS-IS vs TO-BE (stato reale)
 
-L’**Application Layer** rappresenta il livello operativo che coordina:
+### AS-IS (oggi nel repo)
+- **Domain**: presente e consistente (Entities, Value Objects, Domain Events, Exceptions).
+- **Presentation/API**: presente (Controllers; al momento incluso controller template) + contratti esterni (DTOs).
+- **Data/Infrastructure (persistenza)**: presente tramite EF Core (`Data/`, `Migrations/`, converters).
+- **Application layer**: **non ancora separato come layer dedicato**; parte dell’orchestrazione è ancora in evoluzione.
 
-* il dominio,
-* i repository,
-* la gestione dei comandi,
-* le query,
-* le transazioni,
-* il dispatch degli eventi.
+### TO-BE (obiettivo prossimo)
 
-Contiene la logica applicativa, non la logica di business.
+#### Application Layer (TO-BE)
+- Introdurre un vero **Application Layer** con:
+  - Use Cases (Command/Query) in stile CQRS leggero,
+  - **Ports** (interfacce) verso persistenza/servizi esterni,
+  - coordinamento transazioni e dispatch eventi,
+  - mapping API → Use Case (senza logica di business nei controller).
+- Spostare la logica “procedurale” fuori dai Controller (quando cresceranno gli use case).
 
-#### Responsabilità
+L’**Application Layer** sarà l’orchestratore dei casi d’uso: coordina dominio e persistenza senza introdurre logica di business “profonda”.
 
-* Implementare **casi d’uso** (Use Cases)
-* Coordinare entità e servizi del dominio
-* Eseguire validazioni superficiali (pre-condition)
-* Gestire **Command Handler** e **Query Handler** (CQRS)
-* Comunicare con infrastruttura e dominio tramite **porte** (Ports)
-* Dispatch degli eventi di dominio al termine delle transazioni
+**Responsabilità (TO-BE)**
+- implementare i **Use Case** (Command/Query in stile CQRS leggero),
+- coordinare entità e servizi di dominio,
+- gestire pre-condizioni e validazioni “superficiali”,
+- definire **Ports** (interfacce) verso persistenza/servizi esterni,
+- coordinare transazioni e **dispatch** dei Domain Events a fine operazione.
 
-#### Contenuto
+**Contenuti tipici (TO-BE)**
+- Command/Query Handlers
+- Application Services
+- Repository interfaces (Ports)
+- Event dispatcher
+- DTO applicativi (non HTTP)
 
-* **CommandHandler / QueryHandler**
-* **Application Services**
-* **Interfacce dei Repository** (Ports)
-* **Event Dispatcher**
-* **DTO applicativi** (non API)
-
-#### Da escludere
-
-❌ EF Core
-❌ SQL
-❌ Logica di dominio profonda
-❌ HTTP / Controller
-
-#### Relazione con Hexagonal Architecture
-
-L’application layer costituisce le **Port** dell’architettura esagonale, mentre l’infrastruttura implementa gli **Adapter**.
+**Da escludere**
+- EF Core / SQL
+- HTTP / Controller
+- dipendenze infrastrutturali
 
 ---
 
-### 🟧 5.3 Infrastructure Layer — Implementazione tecnica
+## 5. Mappatura layer ↔ cartelle (backend)
 
-Qui vive tutto ciò che è tecnologicamente concreto o dipendente da strumenti esterni.
+```text
+JokesApp.Server/
+├─ Controllers/                # Presentation (HTTP endpoints)
+├─ DTOs/                       # API contracts (request/response)
+├─ Domain/                     # Domain layer (DDD)
+│  ├─ Entities/
+│  ├─ ValueObjects/
+│  ├─ Events/
+│  ├─ Exceptions/
+│  ├─ Errors/
+│  └─ Primitives/
+├─ Data/                       # Infrastructure (EF Core)
+│  ├─ JokesDbContext.cs
+│  ├─ Converters/              # EF Core ValueConverters (VO mapping)
+│  └─ Errors/                  # StartupErrorMessages.cs
+├─ Migrations/                 # EF Core migrations
+├─ Validation/                 # Validation attribute a supporto del boundary HTTP
+├─ Program.cs                  # Bootstrap + DI + middleware pipeline
+├─ appsettings*.json           # Configurazione runtime
+└─ .env                        # Variabili d’ambiente (dev)
+```
 
-#### Responsabilità
-
-* Accesso ai dati (repository)
-* Implementazione delle Ports dell’application layer
-* Integrazione con servizi esterni (API, email, cloud)
-* Logging, filesystem, rete
-* Mapping EF Core
-
-#### Contenuto
-
-* `DbContext`
-* Repository concreti
-* Adapters (HTTP client, SMTP client, ...)
-* Configurazioni Fornite dalla piattaforma
-* Conversioni e mapping dati
-
-#### Da escludere
-
-❌ Regole del dominio
-❌ Logica applicativa
-
----
-
-### 🟥 5.4 Presentation Layer / API — L’interfaccia verso l’utente
-
-Espone e gestisce il livello HTTP/API.
-
-#### Responsabilità
-
-* Routing e Controller
-* Validazione input tramite DTO
-* Conversione DTO → Command/Query
-* Autenticazione e autorizzazione
-* Restituzione delle risposte HTTP
-
-#### Contenuto
-
-* Controller ASP.NET
-* Request/Response DTO
-* Filtri, middleware
-* Mapping API → Application
-
-#### Da escludere
-
-❌ Logica di business
-❌ Accesso al DB
-❌ Use cases interni
+> Nota: eventuali cartelle come `Models/` o `Server_Backup/` non rappresentano un layer architetturale (AS-IS), ma contenuti transitori/di supporto.
 
 ---
 
-### 🟪 5.5 Cross-Cutting Layer — Componenti trasversali
+## 6. Domain Layer (il core)
 
-Gestisce le funzionalità che permeano più layer.
+### 6.1 Responsabilità
+Nel Domain vivono:
+- **invarianti** (regole che devono sempre essere vere),
+- modellazione tramite **Entities** e **Value Objects**,
+- **Domain Events** (fatti rilevanti del dominio),
+- **Domain Exceptions** (violazioni delle regole),
+- primitive comuni (es. `AggregateRoot`).
 
-#### Esempi
+### 6.2 Regole chiave
+- Il Domain **non dipende** da:
+  - HTTP / Controller / DTO,
+  - EF Core / DbContext / Migrations,
+  - librerie infrastrutturali.
+- La validazione “seria” (invarianti) sta nel Domain:
+  - Value Object auto-validanti,
+  - metodi di dominio che proteggono lo stato,
+  - eccezioni tipizzate.
 
-* Logging (Serilog)
-* Middleware globali
-* Dependency Injection
-* Configurazioni
-* Caching
-* Rate limiting
-* Gestione eccezioni
+### 6.3 Esempi (pattern effettivamente usati)
+- Value Object con factory + invarianti (es. lunghezza massima, non vuoto).
+- Entity che genera Domain Events su operazioni significative.
+- Guard/validazioni e eccezioni di dominio per stati illegali.
+
+### 6.4 Value Objects auto-validanti (AS-IS)
+
+I Value Objects incapsulano validazioni e normalizzazione (es. trimming, max length, formato). In caso di input non valido, il Domain solleva `DomainValidationException`. 
+
+### 6.5 Aggregate Root + Domain Events (AS-IS / TO-BE)
+
+**AS-IS:** gli aggregate producono eventi (es. `JokeWasCreated`, `JokeWasLiked`) tramite una coda interna gestita dall’`AggregateRoot`. 
+**TO-BE:** dispatch strutturato nel layer Application dopo persistenza/commit transazionale.
+
+### 6.6 Error handling (AS-IS / TO-BE)
+
+* **Domain (AS-IS):** eccezioni tipizzate (validation/operation/authorization). 
+* **Presentation (TO-BE):** trasformazione coerente in risposte HTTP (400/403/409/500) tramite middleware/filter globale (quando consolidato).
 
 ---
 
-### 🟫 5.6 Testing Layer — Verifica della qualità
+## 7. Presentation/API (HTTP)
 
-L’architettura pulita rende i test estremamente semplici grazie all’isolamento dei layer.
+### 7.1 Responsabilità
+Il livello API deve occuparsi solo di:
+- ricevere input (DTO),
+- validazioni “di frontiera” (formato, required, ecc.),
+- trasformare input in chiamate applicative (oggi: ancora in evoluzione),
+- restituire output (DTO) e codici HTTP.
 
-#### Tipologie di test
+### 7.2 Regola
+Mai esporre direttamente entità/value object del dominio come contratto esterno:
+- verso l’esterno usare **DTOs** stabili.
 
-1. **Unit Test di Dominio**
-   Testano enti, VO e logica di business *senza* DB.
+### 7.3 Flussi esemplificativi (AS-IS / TO-BE)
 
-2. **Unit Test di Application**
-   Testano use case isolati da infrastruttura reale.
+**Creazione “Joke” (happy path)**
 
-3. **Integration Test**
-   Verificano repository, EF Core, WebApplicationFactory.
+1. Client → richiesta HTTP (DTO).
+2. Controller: validazioni “di frontiera”.
+3. Domain: costruzione con VO validi + generazione `JokeWasCreated`. 
+4. EF Core: persistenza.
+5. (TO-BE) Application Layer: estrazione e dispatch eventi dopo commit.
 
-4. **End-to-End**
-   Dalla richiesta HTTP al database e ritorno.
+**Update / Like / Unlike (behavior-driven)**
+Le operazioni sono metodi dell’entità: aggiornano lo stato solo se le precondizioni sono rispettate, generano eventi coerenti e sollevano eccezioni di dominio su violazioni. 
 
 ---
 
-## 6. Riepilogo sintetico dei livelli (tabella accademica)
+## 8. Data / Infrastructure (persistenza EF Core)
+
+### 8.1 Responsabilità
+Qui vive ciò che è “volatile” e dipendente dalla tecnologia:
+- `DbContext`,
+- mapping e conversioni (ValueConverters),
+- migrazioni,
+- (futuro) repository concreti che implementano Ports applicative.
+
+### 8.2 Value Objects + EF Core
+I Value Objects vengono persistiti tramite conversioni dedicate, mantenendo il dominio pulito e coerente.
+
+### 8.3 Bootstrap e concern trasversali (Cross-Cutting)
+
+> Nota: il Cross-Cutting è trasversale ai layer; qui è descritto vicino a `Program.cs` per praticità operativa.
+
+In questa area ricadono i concern trasversali che toccano più layer, tipicamente configurati nel bootstrap dell’app (es. `Program.cs`):
+
+- Dependency Injection (registrazione servizi e componenti)
+- Middleware pipeline (gestione errori, CORS, sicurezza, ecc.)
+- Configurazioni (appsettings + variabili d’ambiente)
+- Logging (come concern trasversale, senza impattare il Domain)
+- Policy e aspetti operativi (rate limiting/caching quando introdotti)
+
+> Regola: il Domain non deve dipendere da implementazioni cross-cutting; al massimo può esporre segnali (eventi/eccezioni) che vengono gestiti all’esterno.
+
+---
+
+## 9. Testing
+
+Il progetto `JokesApp.Tests` valida:
+- invarianti di dominio e comportamento (Unit),
+- (futuro) integrazione con EF Core / API (Integration),
+- regressioni e casi limite.
+
+Obiettivo: usare il Domain come “core testabile” senza dover avviare HTTP o DB per ogni test.
+
+---
+
+## 10. Principi non negoziabili (regole operative)
+
+- **Dominio prima di tutto**: invarianti nel Domain.
+- **Confini netti**: DTO per l’esterno, Domain per regole e integrità.
+- **Niente logica di business nei controller** (target TO-BE).
+- **Truth-first**: questo documento descrive ciò che esiste e ciò che è pianificato, senza vendere “TO-BE” come già implementato.
+
+---
+
+## 11. Riepilogo sintetico dei layer (reference)
 
 | Layer              | Responsabilità                 | Contenuto                      | Deve escludere           |
 | ------------------ | ------------------------------ | ------------------------------ | ------------------------ |
 | **Domain**         | Logica di business, invarianti | Entity, VO, Events, Exceptions | SQL, EF, API             |
 | **Application**    | Casi d’uso, orchestrazione     | UseCase, Ports, Handlers       | Logica business profonda |
-| **Infrastructure** | Accesso dati, servizi tecnici  | EF, Repo concreti, HTTP client | Regole di dominio        |
+| **Infrastructure** | Accesso dati, servizi tecnici  | EF Core, DbContext, converters, migrations, (TO-BE) repository concreti/adapter     | Regole di dominio        |
 | **API**            | Interazioni HTTP, input/output | Controller, DTO                | Business logic           |
 | **Cross-Cutting**  | Logging, config, middleware    | Pipeline, DI                   | Regole di dominio        |
 | **Testing**        | Validazione sistema            | Unit, Integration              | —                        |
 
 ---
 
-## 7. Conclusione
+## 12. Conclusione
 
-La combinazione di Clean Architecture, DDD e Hexagonal Architecture fornisce un modello estremamente robusto per organizzare l’applicazione, rendendola:
+La combinazione di Clean Architecture, DDD e Ports & Adapters fornisce una struttura chiara per separare **regole di dominio**, **casi d’uso**, **dettagli tecnici** e **boundary HTTP**.
 
-* facilmente estendibile,
-* resistente ai cambiamenti tecnologici,
-* testabile,
-* leggibile,
-* orientata al dominio.
-
-Questa struttura è utilizzata da grandi aziende come Microsoft, Amazon, Netflix e Shopify, e rappresenta una base solida sia per progetti didattici sia per applicazioni enterprise di larga scala.
-
----
-
-# 🧩 **Come applicare i GoF Patterns nel tuo progetto Clean + DDD + Hexagonal**
-
-I **Design Patterns GoF** non sostituiscono Clean Architecture, DDD o Hexagonal Architecture:
-👉 **li completano**.
-👉 **vivono dentro i layer giusti**, migliorandone la qualità strutturale.
-👉 **non vanno applicati per moda**, ma quando risolvono problemi concreti.
-
-I documenti che hai scritto descrivono un progetto composto da *Domain, Application, Infrastructure, API, Cross-Cutting* .
-Ogni pattern GoF si applica **solo in alcuni layer**, e soprattutto **solo quando necessario**.
-
----
-
-## 1. 📌 Dove si applicano i GoF nei tuoi layer
-
-| Pattern Area GoF                                                                     | Layer corretto              | Perché                                                                |
-| ------------------------------------------------------------------------------------ | --------------------------- | --------------------------------------------------------------------- |
-| **Creazionali** (Factory, Builder, Singleton)                                        | Domain, Application         | Creazione controllata di oggetti che devono rispettare invarianti DDD |
-| **Strutturali** (Adapter, Facade, Composite, Proxy, Decorator)                       | Application, Infrastructure | Perfetti nella Port/Adapter Architecture e integrazioni esterne       |
-| **Comportamentali** (Observer, Mediator, Strategy, Command, Chain of Responsibility) | Domain, Application         | Ideali per domain events, orchestrazione e use case                   |
-
-Questa tabella rispecchia la tua architettura documentata nei file  .
-
----
-
-## 2. 📘 Pattern GOF e la tua architettura (uno per uno)
-
-### 2.1 Creational Patterns (per la creazione controllata nel Domain)
-
-#### **Factory / Factory Method — *Consigliatissimo per il tuo Dominio***
-
-Nel tuo dominio hai:
-
-* Value Objects (`JokeId`, `AnswerText`, `QuestionText`)
-* Aggregate roots (`Joke`, `ApplicationUser`)
-* Domain Events (`JokeWasCreated`, ecc.)
-
-Questi elementi devono rispettare **invarianti e regole di validazione** definite nel Domain Layer (documentate nei tuoi file) .
-
-💡 **Applicazione consigliata:**
-
-* Crea **static factories** per impedire stati incoerenti.
-* Esempio: `Joke.Create(questionText, answerText, userId)` produce l’oggetto già in uno “stato valido” e pubblica l’evento `JokeWasCreated`.
-
-#### **Builder**
-
-Utile quando una Entity complessa richiede molti parametri opzionali.
-
-Nel tuo dominio:
-→ può essere utile per costruire oggetti `ApplicationUser` con molte proprietà e validazioni.
-
----
-
-### 2.2 Structural Patterns (perfetti per la tua Hexagonal Architecture)
-
-#### **Adapter — *Il pattern più importante nel tuo progetto***
-
-Il tuo file *ARCHITECTURE.md* descrive chiaramente l’uso dell’architettura esagonale (Ports & Adapters) .
-
-I repository concreti in Infrastructure (es. EF Core) **sono Adapter**:
-
-```
-Application Layer → IRepo (Port)
-Infrastructure → RepoEFCore (Adapter)
-```
-
-🔧 Il pattern GoF “Adapter” formalizza esattamente questo concetto.
-
-#### **Facade**
-
-Puoi usarlo:
-
-* per racchiudere complessità di chiamate multiple ai repository,
-* per semplificare l'accesso da parte dell’Application Layer.
-
-Esempio:
-`JokesFacade` può incapsulare operazioni complesse come *crea joke*, *notifica frontend*, *registra evento*.
-
-#### **Decorator**
-
-Perfetto per:
-
-* logging,
-* caching,
-* cross-cutting concerns.
-
-Potresti implementarlo per avvolgere i repository con log automatico degli accessi, integrandosi bene col tuo Eventing.
-
----
-
-### 2.3 Behavioral Patterns (fondamentali nel Domain + Application)
-
-#### **Observer — Già presente nei tuoi Domain Events**
-
-Hai già implementato:
-
-* `IDomainEvent`
-* `DomainEvent`
-* `JokeWasCreated`, `JokeWasLiked`, ecc.
-
-Questo è esattamente **l’Observer pattern**, applicato in chiave DDD.
-L’Application Layer sarà l’**Event Dispatcher** che notificherà i listener.
-
-#### **Command — Già presente nel tuo CQRS leggero**
-
-Nel tuo *README* descrivi l’idea di:
-
-* Command
-* Query
-* Handlers
-
-Questo è letteralmente il GoF **Command Pattern**.
-In Clean Architecture + CQRS:
-
-➡ il “Command Handler” **è** il Command pattern.
-
-#### **Strategy — Perfetto per logiche variabili**
-
-Esempi:
-
-* diverse strategie di validazione,
-* diverse modalità di sorting o filtraggio di jokes,
-* plugin per generazione notifiche.
-
-#### **Chain of Responsibility**
-
-Utile per pipeline di validazione o autorizzazione.
-
-Nel tuo progetto può funzionare nel Presentation Layer:
-
-```
-Input → [Validation Handler] → [Authorization Handler] → [Business Rules Handler]
-```
-
----
-
-## 3. 🧱 Come integrare i pattern GoF nel tuo progetto *step-by-step*
-
-### **Step 1 — Rafforza il Domain con Factory + Observer**
-
-Per ogni entità:
-
-1. Usa Factory per creare oggetti validi.
-2. Solleva eventi di dominio.
-3. Aggiungi test (conforme al tuo sistema di test documentato).
-
-Questo mantiene il Domain puro, coerente e indipendente dalla tecnologia.
-
----
-
-### **Step 2 — Struttura l’Application Layer con Command + Mediator**
-
-Se decidi di usare MediatR o un Dispatcher manuale:
-
-* ogni caso d’uso diventa un **Command Handler**
-* il Dispatcher (Mediator) coordina flow e eventi
-
-Questo segue quanto descritto nella tua architettura .
-
----
-
-### **Step 3 — Implementa Adapter nei repository Infrastructure**
-
-I tuoi repository concreti devono:
-
-* implementare le interfacce definite in Application (Ports)
-* convertire Value Objects ↔ Entity Framework (tramite i Converter che già hai)
-* loggare gli eventi tecnici (Decorator opzionale)
-
----
-
-### **Step 4 — Applicare Decorator / Proxy al logging tecnico**
-
-Hai indicato nella road map:
-
-* log funzionali,
-* log tecnici,
-* audit trail,
-* eventi live al frontend.
-
-Puoi farlo così:
-
-```
-IRepository
-↑
-RepoLoggingDecorator (GoF Decorator)
-↑
-RepoEFCore (Adapter)
-```
-
----
-
-### **Step 5 — Applicare Facade nell’orchestrazione complessa**
-
-Suggerito per future feature come:
-
-* notifiche push SignalR,
-* broadcast di eventi al frontend,
-* pipeline di approvazione dei contenuti.
-
-Una *JokesDomainService* o *ApplicationService* può fungere da Facade semplificata.
-
----
-
-## 4. 🧩 Ricapitolazione finale — Pattern consigliati per ogni subsystem
-
-| Subsystem                | Pattern GoF ideale                                   | Perché                                                     |
-| ------------------------ | ---------------------------------------------------- | ---------------------------------------------------------- |
-| **Domain Layer**         | Factory, Builder, Observer                           | Garantire invarianti, eventi di dominio e creazione sicura |
-| **Application Layer**    | Command, Mediator, Strategy, Chain of Responsibility | Gestione dei casi d’uso e orchestrazione                   |
-| **Infrastructure Layer** | Adapter, Decorator, Proxy, Facade                    | Ports & Adapters, logging, integrazioni tecniche           |
-| **API Layer**            | Facade (per orchestrare), CoR (per validazioni)      | Semplificare input/output HTTP                             |
-| **Cross-Cutting**        | Decorator, Proxy                                     | logging, caching, auditing                                 |
-
----
-
-## 5. 🎯 Conclusione: come integrarli con la tua documentazione
-
-I pattern GoF non vanno documentati come moduli separati, ma come **strumenti integrativi** all’interno dei layer già definiti nei file:
-
-* *README* (overview architetturale) 
-* *ARCHITECTURE.md* (layer dettagliati, DDD e Hexagonal) 
-
-👉 Devi aggiungere una nuova sezione **“Design Patterns Adopted”** dentro *JokesApp.Doc/JokesApp.Server/Architecture.md* che spiega:
-
-* quali pattern usi,
-* in quale layer si trovano,
-* a quale responsabilità architetturale rispondono,
-* perché sono stati scelti.
+In JokesApp il Domain è già un nucleo coerente e testabile; l’evoluzione principale (TO-BE) è consolidare l’Application Layer per spostare l’orchestrazione fuori dai controller e rendere ancora più netti i confini tra livelli.
 
 ---
