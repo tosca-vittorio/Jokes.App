@@ -18,16 +18,19 @@ Serve a:
 2) **Pattern + motivazioni**  
    → `./DESIGN_PATTERNS.md`
 
-3) **Regole operative**  
+3) **Convenzioni (naming, struttura, doc, commit)**
+   → `./CONVENTIONS.md`
+
+4) **Regole operative**  
    → `./WORKFLOW.md`
 
-4) **Direzione e milestone (TO-BE dichiarato)**  
+5) **Direzione e milestone (TO-BE dichiarato)**  
    → `./ROADMAP.md`
 
-5) **Cruscotto operativo (task verificabili)**  
+6) **Cruscotto operativo (task verificabili)**  
    → `./toDo.md`
 
-6) **Sequenza operativa Backend (step-by-step)**  
+7) **Sequenza operativa Backend (step-by-step)**  
    → `./JokesApp.Server/TIMELINE.md`
 
 ---
@@ -35,9 +38,10 @@ Serve a:
 ## 🎯 Percorsi rapidi (in base a cosa devi fare)
 
 ### Se devi “capire il progetto” (onboarding rapido)
-- `ARCHITECTURE.md` → confini, layer, regole
+- `./ARCHITECTURE.md` → confini, layer, regole
 - `JokesApp.Server/Program.md` → bootstrap, config e run
-- `WORKFLOW.md` → come si lavora sul repo e come si committa
+- `./CONVENTIONS.md` → naming, struttura, regole doc/commit
+- `./WORKFLOW.md` → come si lavora sul repo e come si committa
 
 ### Se devi lavorare sul Backend
 - `JokesApp.Server/TIMELINE.md` → ordine logico e dipendenze tra step
@@ -49,6 +53,7 @@ Serve a:
 - `JokesApp.Tests/Data/` → setup e note su DbContext test
 
 ### Se devi aggiungere/aggiornare documentazione
+- `CONVENTIONS.md` → regole di naming/struttura e convenzioni documentali
 - `WORKFLOW.md` → regole “truth-first”, no duplicazioni, commit chirurgici
 - Se il contenuto è *globale* → aggiorna `ARCHITECTURE / ROADMAP / DESIGN_PATTERNS`
 - Se è *specifico* → aggiorna la cartella area (`JokesApp.Server/`, `JokesApp.Tests/`, `JokesApp.Client/`)
@@ -60,10 +65,11 @@ Serve a:
 ### 📌 Documenti globali (root `JokesApp.Doc/`)
 - `ARCHITECTURE.md` — architettura globale, confini, dependency rule, AS-IS vs TO-BE
 - `DESIGN_PATTERNS.md` — pattern adottati e motivazioni
-- `WORKFLOW.md` — regole operative 
+- `WORKFLOW.md` — regole operative
 - `ROADMAP.md` — direzione e milestone
 - `toDo.md` — task operative verificabili
 - `README.md` — navigazione e regole (questo file)
+- `CONVENTIONS.md` — convenzioni (naming, struttura cartelle, doc, commit)
 
 ### 🔴 Backend — `JokesApp.Doc/JokesApp.Server/`
 Entry-point principali:
@@ -188,6 +194,7 @@ Aggiorna **anche** i documenti globali solo se:
 | Milestone e direzione | `ROADMAP.md` |
 | Task verificabili | `toDo.md` |
 | Sequenza operativa backend | `JokesApp.Server/TIMELINE.md` |
+| Convenzioni (naming/codice/doc) | `CONVENTIONS.md` |
 
 ---
 
