@@ -39,13 +39,13 @@ Uno *stile architetturale* definisce:
 
 ### 1.2 Scelte progettuali
 
-| Scelta                      | Stato | Motivazione                                                                 |
-| --------------------------- | ----- | --------------------------------------------------------------------------- |
-| **Clean Architecture**      | ✔️    | Offre separazione chiara tra domain, application e infrastruttura           |
-| **Domain-Driven Design**    | ✔️    | Adatto per modellare la logica del dominio in modo rigoroso                 |
-| **Hexagonal Architecture**  | ✔️    | Implementazione concreta della Clean in termini di Ports & Adapters         |
-| **SOLID, DRY, KISS, YAGNI** | ✔️    | Migliorano qualità, leggibilità e manutenibilità                            |
-| **CQRS leggero**            | ✔️    | Semplifica separazione command/query senza introdurre complessità eccessiva |
+| Scelta                      | Stato     | Motivazione                                                                 |
+| --------------------------- | --------- | --------------------------------------------------------------------------- |
+| **Clean Architecture**      | AS-IS     | Separazione a layer + dependency rule verso l’interno (dominio)             |
+| **Domain-Driven Design**    | AS-IS     | Dominio modellato con Entities/VO/Eventi/Exceptions e invarianti            |
+| **Hexagonal Architecture**  | Parziale  | Adottata come *mental model*; Ports & Adapters formalizzati (Handlers/Ports) sono TO-BE |
+| **SOLID, DRY, KISS, YAGNI** | AS-IS     | Linee guida applicate per mantenere codice e dominio puliti e manutenibili  |
+| **CQRS leggero**            | TO-BE     | Separazione Command/Query prevista nell’Application Layer (Use Cases/Handlers) |
 
 
 ### 1.3 La struttura architetturale finale
