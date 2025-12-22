@@ -1,38 +1,42 @@
-# 📘 **JokesApp — Git Workflow Creation & Initial DevOps Setup (Monorepo)**
+# 🚀📘 **JokesApp — Git Workflow Creation & Initial DevOps Setup (Monorepo)**
 
-Questo documento descrive in modo chiaro e professionale tutti i passaggi necessari per creare la monorepo **JokesApp**, comprendente:
+Questa guida descrive i passaggi **one-time** e **recurring** per creare correttamente la monorepo JokesApp (React + ASP.NET Core + Tests) e pubblicarla su GitHub senza errori tipici (repo annidate, staging sporco, file segreti versionati). È il punto di partenza del percorso DevOps: Git, GitHub, CI/CD, monorepo management.
 
-* **JokesApp.Client** (React + Vite)
-* **JokesApp.Server** (ASP.NET Core)
-* **JokesApp.Tests** (Test automatici)
+Questo documento contiene sia:
 
-È il punto di partenza del tuo percorso DevOps: Git, GitHub, CI/CD, monorepo management.
+### PARTE 1:
+- **BOOTSTRAP**: creazione/inizializzazione monorepo   [ONE-TIME]
+- **WORKFLOW**: lavoro quotidiano (branch/PR/commit)   [RECURRING] 
+
+### PARTE 2:
+- **CI/CD**: pipeline e basi DevOps            
 
 ---
 
-## 🟩 1. Scelta dell’architettura: **Monorepo**
+## ⬜ 1. Scelta Architetturale: Monorepo 
 
 La monorepo è la scelta migliore per un progetto moderno che integra frontend e backend.
 
-### ✅ Vantaggi principali
+### ✅ 1.1 Vantaggi principali
+- **Zero problemi di sincronizzazione tra repository**
+- **Condivisione semplificata di DTO / contratti API**
+- **CI/CD unica** per frontend e backend (build/test FE+BE nella stessa PR)
+- **Atomicità delle modifiche** (una PR può toccare contratti + implementazioni)
+- **Onboarding semplice** (un clone = progetto completo)
+- **Storico coerente** (una timeline Git)
+- **Versionamento coerente**
 
-* **CI/CD unica** per frontend e backend
-* **Atomicità delle modifiche** (un’unica PR aggiorna FE+BE)
-* **Versionamento coerente**
-* **Condivisione semplificata di DTO / contratti API**
-* **Zero problemi di sincronizzazione tra repository**
-* **Onboarding semplice**: un clone = progetto completo
+### 📁 1.2 Struttura finale della monorepo
 
-### 📁 Struttura finale della monorepo
-
-```
+```text
 /JokesApp
-   ├── JokesApp.Client/     → React + Vite
-   ├── JokesApp.Server/     → ASP.NET Core Web API
-   ├── JokesApp.Tests/      → Test automatici
-   ├── .gitignore
-   ├── JokesApp.slnx
-   └── docs/
+├── JokesApp.Client/      → React + Vite
+├── JokesApp.Server/      → ASP.NET Core Web API
+├── JokesApp.Tests/       → Test automatici
+├── JokesApp.Doc/
+├── .github/workflows/
+├── .gitignore
+└── JokesApp.slnx
 ```
 
 ---
@@ -41,11 +45,8 @@ La monorepo è la scelta migliore per un progetto moderno che integra frontend e
 
 *(Step critico e necessario)*
 
-Quando Vite crea un nuovo progetto, spesso inizializza automaticamente un repository Git locale:
-
-```
-JokesApp.Client/.git/
-```
+Quando strumenti frontend inizializzano Git automaticamente, può comparire:
+`JokesApp.Client/.git/`
 
 Questo è **incompatibile con la monorepo**, perché crea:
 
@@ -54,29 +55,53 @@ Questo è **incompatibile con la monorepo**, perché crea:
 * problemi con la storia Git
 * errori nei workflow CI/CD
 
-### 🔎 Verifica la presenza del repository interno
+### 🔎 2.1 Verifica
+Dalla root della monorepo verifica la presenza del repository interno. 
+Se vedi `.git/`, prosegui con la rimozione.
 
+#### 2.1.1 **Linux/macOS (bash):**
 ```bash
 ls -la JokesApp.Client
 ```
 
-Se vedi `.git/`, prosegui con la rimozione.
+#### 2.1.2 **Windows (PowerShell):**
 
-### 🛠 Rimozione definitiva del repository interno
+```powershell
+Get-ChildItem -Force .\JokesApp.Client
+```
 
+### 2.2 🛠 Rimozione
+
+Questo **non elimina nessun file del progetto**, rimuove solo il repository interno.
 Dalla root della monorepo:
+
+#### 2.2.1 **Linux/macOS:**
 
 ```bash
 rm -rf JokesApp.Client/.git
 ```
 
-Questo **non elimina nessun file del progetto**, rimuove solo il repository interno.
+#### 2.2.2 **Windows (PowerShell):**
+
+```powershell
+Remove-Item -Recurse -Force .\JokesApp.Client\.git
+```
 
 ---
 
-## 🟧 3. Pulizia dello staging Git
+## 🟩 3. Inizializzare Git nella Root Project
 
-Se avevi già eseguito un `git add .`, Git potrebbe aver tracciato:
+Dalla root del progetto:
+
+```bash
+git init -b main
+```
+
+---
+
+## 🟧 4. Pulizia dello staging Git 
+
+*RECOVERY:* Se erroneamente si è fatto un `git add .`, e Git ha tracciato file non desiderati, è possibile pulire lo staging se è stata tracciata roba da ignorare:
 
 * `node_modules/`
 * `.vs/`
@@ -85,7 +110,6 @@ Se avevi già eseguito un `git add .`, Git potrebbe aver tracciato:
 * tracce del vecchio `.git` del client
 
 Per pulire tutto:
-
 ```bash
 git rm -r --cached .
 ```
@@ -96,101 +120,125 @@ Questo comando:
 * NON elimina i file dal disco
 * permette di ripartire con uno staging pulito
 
+Poi ricostruisci lo staging pulito dopo aver sistemato `.gitignore`.
+
 ---
 
-## 🟨 4. Configurazione del `.gitignore` (monorepo-ready)
+## ⬛ 5. Configurazione del `.gitignore` monorepo-ready
 
 Dopo aver ripulito lo staging, aggiorna o conferma il tuo `.gitignore`.
 
-Esempio completo:
+**Obiettivo**: ignorare artefatti e segreti senza rompere l’esperienza dev.
 
 ```gitignore
 ################################################
-### 🔹 SEZIONE 1 — ASP.NET Core / .NET
+### .NET / ASP.NET Core
 
 # Build outputs
-bin/
-obj/
+**/bin/
+**/obj/
 
 # Visual Studio
-.vs/
+**/.vs/
 *.user
 *.suo
+*.csproj.user
+
+# Test / Coverage
+**/TestResults/
+**/coverage/
+**/coverageReports/
 
 # Logs
 *.log
 
-# Configurazioni locali (segreti)
-appsettings.Development.json
-appsettings.Local.json
-launchSettings.json
+# Local configs / secrets
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/Properties/launchSettings.json
 
-# Database locali
+# Local databases
 *.db
 *.db-shm
 *.db-wal
 
-################################################
-### 🔹 SEZIONE 2 — Node / React / Vite
+# NuGet artifacts (optional but common)
+*.nupkg
+*.snupkg
 
-# Node modules
-node_modules/
+################################################
+### Node / React / Vite
+
+# Dependencies
 **/node_modules/
 
-# Build frontend
-dist/
+# Build / cache
 **/dist/
 **/.vite/
+**/.eslintcache
 
-# Env frontend
+# Node logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+################################################
+### Env & Secrets (global)
+
 **/.env
 **/.env.*
 
 ################################################
-### 🔹 SEZIONE 3 — Env & Secrets backend
-
-**/*.env
-
-################################################
-### 🔹 SEZIONE 4 — Editor & IDE (VS Code, JetBrains)
+### IDE / Editor
 
 # VS Code
 .vscode/
 !.vscode/extensions.json
-*.rsuser
+
+# Visual Studio extra
+*.userosscache
+*.sln.docstates
 
 
 # JetBrains / Rider
 .idea/
 *.iml
+*.DotSettings.user
 
 ################################################
-### 🔹 SEZIONE 5 — Sistema operativo / varie
+### OS
 
-# Windows / macOS
 Thumbs.db
 Desktop.ini
 .DS_Store
 
 ################################################
-### 🔹 SEZIONE 6 — Varie / Backup
+### Varie / Backup
 
-# Evita di versionare backup SQL pesanti
 *.backup
 **/BackupSQL/
-
 *.swp
+
+### Publish / artifacts
+**/publish/
+**/artifacts/
+
+################################################
+# File di lavoro locali
 struttura.txt
 ```
 
 ---
 
-## 🔄 5. Riesecuzione dello staging (con `.gitignore` attivo)
+## 🔄 6.  Primo staging pulito e “Initial Clean Commit” (ONE-TIME)
 
 Ora che il `.gitignore` è corretto:
 
 ```bash
 git add .
+git status
+git commit -m "Initial clean commit"
 ```
 
 Git includerà SOLO:
@@ -211,127 +259,110 @@ Ed escluderà automaticamente:
 * `.git` interni
 * file locali
 
----
+> `git add .` qui è accettabile perché è il bootstrap. Dopo, si passa a commit mirati.
 
-## 🟪 6. Verifica finale prima della commit
+### 6.1 Regola “anti-caos”
 
-Controlla:
+> Regola pratica:
+> - `git add .` → solo nel BOOTSTRAP (primo commit pulito) o in casi eccezionali controllati.
+> - altrimenti → commit, piccoli, verificabili e mirati (`git add <file>`) soprattutto sulla documentazione.
 
-```bash
-git status
-```
+Risultato: storico pulito, debugging semplice, PR review facile.
 
-Dovresti vedere solo file sorgente veri e nessuno dei seguenti:
+### 6.2 Commit message 
 
-* `JokesApp.Client/.git`
-* `node_modules`
-* `.vs`
-* `bin`
-* `obj`
-* file `.env`
-* `dist/`
+Per restare coerente con lo stile:
 
-Se tutto è pulito → passa allo step finale.
+* `(docs): ...`
+* `(feat): ...`
+* `(fix): ...`
+* `(refactor): ...`
+* `(test): ...`
+* `(chore): ...`
 
----
+Esempi:
 
-## ⬛ 7. Prima commit professionale
-
-```bash
-git commit -m "Initial Clean Commit"
-```
+* `(docs): update doc hub`
+* `(docs): finalize architecture`
+* `(fix): handle invalid joke payload`
 
 ---
 
-## ⬜ 8. Creazione repository remoto GitHub
+## 🟪 7. Creazione remote GitHub e push iniziale
 
-Repository senza:
-
-* README
-* .gitignore
-* LICENSE
-
-Per evitare conflitti.
-
-Poi collega la repo:
+1. Crea repo remoto **vuoto** per evitare conflitti (senza README/.gitignore/LICENSE).
+2. Collega e push:
 
 ```bash
-git remote add origin https://github.com/<utente>/JokesApp.git
-git branch -M main
+git remote add origin https://github.com/tosca-vittorio/JokesApp.git
 git push -u origin main
-```
-
----
-
-## 🟢 9. **Branch Strategy consigliata (GitFlow semplificato)**
-
-I branch principali sono:
-
-* **`main`** → produzione, codice stabile, rilasci
-* **`development`** → sviluppo continuo
-* **feature/*** → nuove funzionalità
-* **fix/*** → bugfix
-
-Per il tuo livello attuale:
-
-👉 **main**
-👉 **development**
-
-sono più che sufficienti.
-
----
-
-## 🔴 10. **Creazione del branch di sviluppo**
-
-Dalla root del progetto, fai:
-
-```bash
-git checkout -b development
-```
-
-Questo crea e ti sposta sul branch `development`.
-
----
-
-## 🟠 11. Ora puoi sviluppare SOLO su `development`
-
-Qualunque file tu:
-
-* aggiungi
-* modifichi
-* aggiorni
-* crei
-
-verrà tracciato SOLO nel branch `development`.
-
-Esempio:
-
-### Aggiungi README.md
-
-```bash
-git add README.md
-git commit -m "Add initial README documentation"
-```
-
-Questi commit sono presenti **solo in development**, non in main.
-
----
-
-## 🟡 12. Quando il codice è stabile → *commit finale su development*
-
-Sempre:
-
-```bash
-git add .
-git commit -m "Stabilized documentation + structure"
-git push -u origin development
 ```
 
 Adesso il branch viene caricato su GitHub.
 
 ---
 
-## 🔵 13. **Apri una Pull Request → merge su main**
+## 🟨 8. Branch Strategy consigliata: creare branch `development`
+
+I branch principali sono:
+
+* **`main`** → (release): produzione, codice stabile, rilasci 
+* **`development`** → sviluppo continuo / integrazione continua
+
+- opzionale:
+  - `feature/<topic>` → nuove funzionalità
+  - `fix/<topic>` → bugfix / `hotfix/<topic>` → correzioni
+
+Regola: **mai commit diretti su main**. Solo PR.
+
+Per il livello attuale:
+
+👉 **main** →  `main` stabile
+👉 **development** → `development` per lavoro quotidiano
+
+sono più che sufficienti.
+
+Dalla root del progetto:
+```bash
+git checkout -b development
+```
+
+Questo crea e ti sposta sul branch `development`.
+Ora puoi sviluppare SOLO su `development`; ogni file che si:
+
+* aggiunge
+* modifica
+* aggiorna
+* crea
+
+verrà tracciato SOLO nel branch `development`, non in `main` branch.
+
+---
+
+## 🟫 9. Impostazioni GitHub consigliate (ONE-TIME, ma fondamentali)
+
+### 9.1 Branch protection (main)
+
+* blocca push diretto su `main`
+* richiedi PR per merge
+* richiedi “status checks” (CI) prima del merge
+
+### 9.2 Protezione ambienti (quando si farà CD)
+
+* `staging` e `production` come environments
+* approvazione manuale su `production`
+
+---
+
+## 🔳 10. Sicurezza minima (ONE-TIME)
+
+* non versionare segreti (`.env`, connection string reali, token)
+* usa GitHub Secrets/Environments per CI/CD
+* opzionale: aggiungi un “secret scanning” (anche in futuro)
+
+---
+
+## 🔲 11. Pull Request → Merge
 
 Vai su GitHub:
 
@@ -348,127 +379,53 @@ Questa PR rappresenta:
 * Merge sicuro nella versione ufficiale
 
 Quando approvi la PR → GitHub fa il merge.
-
----
-
-## 🟣 14. Dopo il merge → torni su development per continuare
+Dopo il merge → torni su development per continuare
 
 Il ciclo è:
 
-```
+```bash
 git checkout development
 git pull
-git checkout -b feature/something   (opzionale)
-git add .
+git checkout -b feature/something (opzionale)
+git add <file>
 git commit
 git push
 PR → main
 ```
 
----
-
-## 🟤 15. **Da ora in poi MAIN non si tocca mai direttamente**
+**Da ora in poi MAIN non si tocca mai direttamente**
 
 RULE:
 
 👉 **Non fare MAI commit diretti su main.**
 Solo PR da development → main.
 
-Questo è ciò che fanno:
+### Ricapitolazione: **workflow Git professionale.**
 
-* aziende
-* team professionali
-* DevOps engineer
-* sviluppatori senior
+| Step | Azione                                                    |
+| ---- | -------------------------------------------------------   |
+| 1    | Crei branch `development` → `git checkout -b development` |
+| 2    | Modifichi file, crei README, aggiorni codice              |
+| 3    | Fai commit → `git commit -m "..."`                        |
+| 4    | Push su GitHub → `git push -u origin development`         |
+| 5    | Apri una PR da development → main                         |
+| 6    | GitHub → fa il merge                                      |
+| 7    | Continui a lavorare su `development`                      |
 
----
+> Approccio corretto per DevOps, monorepo, CI/CD e collaborazioni future.
 
-## ⚫ 16. Ricapitolazione professionale
+### Quando si apre una Pull Request?
 
-| Step | Azione                                                  |
-| ---- | ------------------------------------------------------- |
-| 1    | Crei branch development → `git checkout -b development` |
-| 2    | Modifichi file, crei README, aggiorni codice            |
-| 3    | Fai commit → `git commit -m "..."`                      |
-| 4    | Push su GitHub → `git push -u origin development`       |
-| 5    | Apri una PR da development → main                       |
-| 6    | GitHub fa il merge (o lo fai tu)                        |
-| 7    | Continui a lavorare su development                      |
+Apri PR quando:
 
-### **Risultato: stai usando un workflow Git professionale.**
+* la feature è completa **o** c’è uno “slice” verificabile,
+* CI passa,
+* la doc “owner” è aggiornata (se necessario).
 
-Questo è l’approccio corretto per DevOps, monorepo, CI/CD e collaborazioni future.
+Checklist minima PR:
 
----
-
-## ⚪ 17. CI/CD — Continuous Integration (prima pipeline)
-
-*(La pipeline completa sarà trattata nel documento CI/CD.)*
-
-Esempio base:
-
-```yaml
-# .github/workflows/ci.yml
-
-name: CI
-
-on:
-  push:
-    branches: [ "main", "dev", "feature/*" ]
-  pull_request:
-
-jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v3
-
-    - uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: 8.0.x
-
-    - name: Backend - Restore & Build
-      run: dotnet build JokesApp.slnx --configuration Release
-
-    - name: Run Tests
-      run: dotnet test JokesApp.slnx --no-build
-
-    - uses: actions/setup-node@v3
-      with:
-        node-version: 18
-
-    - name: Frontend - Install & Build
-      run: |
-        cd JokesApp.Client
-        npm install
-        npm run build
-```
+* build/test ok
+* cambiamenti descritti
+* eventuale doc aggiornata (owner)
 
 ---
-
-## 🧠 18. Roadmap DevOps del progetto
-
-| Step | Materia                      | Perché è fondamentale      |
-| ---- | ---------------------------- | -------------------------- |
-| 1    | Git + GitHub Workflow        | Base del versionamento     |
-| 2    | CI (build & test automatici) | Inizia il DevOps reale     |
-| 3    | CD (deploy automatico)       | Distribuzione continua     |
-| 4    | Docker                       | Standard moderno           |
-| 5    | Kubernetes                   | Scalabilità                |
-| 6    | Monitoring & Logging         | Osservabilità              |
-| 7    | IaC (Terraform)              | Automazione infrastruttura |
-| 8    | DevSecOps                    | Sicurezza completa         |
-
----
-
-## ⭐ 19. **Documento completato e pronto per essere aggiunto alla repository.**
-
-Si può creare anche:
-
-* **02_MONOREPO_STRUCTURE.md**
-* **03_GIT_WORKFLOW.md**
-* **04_CI_PIPELINE.md**
-* **05_CD_PIPELINE.md**
-* **ROADMAP_DEVOPS.md**
-* **README.md professionale**
