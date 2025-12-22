@@ -1,82 +1,96 @@
 ################################################
-### 🔹 SEZIONE 1 — ASP.NET Core / .NET
+### .NET / ASP.NET Core
 
 # Build outputs
-bin/
-obj/
+**/bin/
+**/obj/
 
 # Visual Studio
-.vs/
+**/.vs/
 *.user
 *.suo
 *.csproj.user
 
+# Test / Coverage
+**/TestResults/
+**/coverage/
+**/coverageReports/
+
 # Logs
 *.log
 
-# Configurazioni locali (segreti)
-appsettings.Development.json
-appsettings.Local.json
+# Local configs / secrets
+**/appsettings.Development.json
+**/appsettings.Local.json
 **/Properties/launchSettings.json
 
-# Database locali
+# Local databases
 *.db
 *.db-shm
 *.db-wal
 
-################################################
-### 🔹 SEZIONE 2 — Node / React / Vite
+# NuGet artifacts (optional but common)
+*.nupkg
+*.snupkg
 
-# Node modules
-node_modules/
+################################################
+### Node / React / Vite
+
+# Dependencies
 **/node_modules/
 
-# Build frontend
-dist/
+# Build / cache
 **/dist/
 **/.vite/
+**/.eslintcache
 
-# Env frontend
+# Node logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+################################################
+### Env & Secrets (global)
+
 **/.env
 **/.env.*
 
 ################################################
-### 🔹 SEZIONE 3 — Env & Secrets backend
-
-# Env backend (e in generale)
-**/*.env
-**/.env
-**/.env.*
-
-################################################
-### 🔹 SEZIONE 4 — Editor & IDE (VS Code, JetBrains)
+### IDE / Editor
 
 # VS Code
 .vscode/
 !.vscode/extensions.json
-*.rsuser
+
+# Visual Studio extra
+*.userosscache
+*.sln.docstates
+
 
 # JetBrains / Rider
 .idea/
 *.iml
+*.DotSettings.user
 
 ################################################
-### 🔹 SEZIONE 5 — Sistema operativo / varie
+### OS
 
-# Windows / macOS
 Thumbs.db
 Desktop.ini
 .DS_Store
 
 ################################################
-### 🔹 SEZIONE 6 — Varie / Backup
+### Varie / Backup
 
-# Evita di versionare backup SQL pesanti
 *.backup
 **/BackupSQL/
-
-# Vim swap
 *.swp
 
-# File di lavoro locali
+### Publish / artifacts
+**/publish/
+**/artifacts/
+
+
+################################################
 struttura.txt
