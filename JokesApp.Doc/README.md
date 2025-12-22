@@ -47,6 +47,9 @@ Serve a:
 - `JokesApp.Server/TIMELINE.md` → ordine logico e dipendenze tra step
 - `JokesApp.Server/` → documenti di dettaglio (Domain, Data, DTO, Validation…)
 
+### Se devi lavorare sul Frontend
+- `JokesApp.Client/README.md` → struttura UI, routing previsto, servizi API, convenzioni locali
+
 ### Se devi lavorare sui Test
 - `JokesApp.Tests/README.md` → overview test
 - `JokesApp.Tests/doc/testing_targets.md` → obiettivi/target di test

@@ -7,6 +7,7 @@ Questo documento è la **fonte di verità architetturale** del progetto: descriv
 - **TO-BE**: direzione di evoluzione dichiarata (senza spacciare il futuro per presente).
 
 - Entry-point documentazione: `JokesApp.Doc/README.md`
+- Entry-point frontend (UI/routing/services): `JokesApp.Doc/JokesApp.Client/README.md`
 - Workflow repo: `JokesApp.Doc/WORKFLOW.md`
 - Stato operativo: `JokesApp.Doc/toDo.md`
 - Timeline (Server): `JokesApp.Doc/JokesApp.Server/TIMELINE.md`
