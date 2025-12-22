@@ -1,0 +1,373 @@
+Elenco del percorso delle cartelle per il volume Windows_ssd
+Numero di serie del volume: 722C-5624
+C:.
+|   .env
+|   appsettings.Development.json
+|   appsettings.json
+|   CHANGELOG.md
+|   JokesApp.Server.csproj
+|   JokesApp.Server.csproj.user
+|   JokesApp.Server.http
+|   Program.cs
+|   struttura.txt
+|   WeatherForecast.cs
+|   
++---bin
+|   \---Debug
+|       \---net10.0
+|           |   appsettings.Development.json
+|           |   appsettings.json
+|           |   DotNetEnv.dll
+|           |   Humanizer.dll
+|           |   JokesApp.Server.deps.json
+|           |   JokesApp.Server.dll
+|           |   JokesApp.Server.exe
+|           |   JokesApp.Server.pdb
+|           |   JokesApp.Server.runtimeconfig.json
+|           |   JokesApp.Server.staticwebassets.endpoints.json
+|           |   Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
+|           |   Microsoft.AspNetCore.OpenApi.dll
+|           |   Microsoft.AspNetCore.SpaProxy.dll
+|           |   Microsoft.Build.dll
+|           |   Microsoft.Build.Framework.dll
+|           |   Microsoft.Build.Tasks.Core.dll
+|           |   Microsoft.Build.Utilities.Core.dll
+|           |   Microsoft.CodeAnalysis.CSharp.dll
+|           |   Microsoft.CodeAnalysis.CSharp.Workspaces.dll
+|           |   Microsoft.CodeAnalysis.dll
+|           |   Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.dll
+|           |   Microsoft.CodeAnalysis.Workspaces.dll
+|           |   Microsoft.CodeAnalysis.Workspaces.MSBuild.dll
+|           |   Microsoft.EntityFrameworkCore.Abstractions.dll
+|           |   Microsoft.EntityFrameworkCore.Design.dll
+|           |   Microsoft.EntityFrameworkCore.dll
+|           |   Microsoft.EntityFrameworkCore.Relational.dll
+|           |   Microsoft.Extensions.DependencyModel.dll
+|           |   Microsoft.NET.StringTools.dll
+|           |   Microsoft.OpenApi.dll
+|           |   Mono.TextTemplating.dll
+|           |   Newtonsoft.Json.dll
+|           |   Npgsql.dll
+|           |   Npgsql.EntityFrameworkCore.PostgreSQL.dll
+|           |   spa.proxy.json
+|           |   Sprache.dll
+|           |   System.CodeDom.dll
+|           |   System.Composition.AttributedModel.dll
+|           |   System.Composition.Convention.dll
+|           |   System.Composition.Hosting.dll
+|           |   System.Composition.Runtime.dll
+|           |   System.Composition.TypedParts.dll
+|           |   System.Configuration.ConfigurationManager.dll
+|           |   System.Formats.Nrbf.dll
+|           |   System.Reflection.MetadataLoadContext.dll
+|           |   System.Resources.Extensions.dll
+|           |   System.Security.Cryptography.ProtectedData.dll
+|           |   System.Security.Permissions.dll
+|           |   System.Windows.Extensions.dll
+|           |   
+|           +---BuildHost-net472
+|           |   |   Microsoft.Build.Locator.dll
+|           |   |   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe
+|           |   |   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe.config
+|           |   |   Microsoft.IO.Redist.dll
+|           |   |   Newtonsoft.Json.dll
+|           |   |   System.Buffers.dll
+|           |   |   System.Collections.Immutable.dll
+|           |   |   System.CommandLine.dll
+|           |   |   System.Memory.dll
+|           |   |   System.Numerics.Vectors.dll
+|           |   |   System.Runtime.CompilerServices.Unsafe.dll
+|           |   |   System.Threading.Tasks.Extensions.dll
+|           |   |   
+|           |   +---cs
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---de
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---es
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---fr
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---it
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---ja
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---ko
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---pl
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---pt-BR
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---ru
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---tr
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---zh-Hans
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   \---zh-Hant
+|           |           System.CommandLine.resources.dll
+|           |           
+|           +---BuildHost-netcore
+|           |   |   Microsoft.Build.Locator.dll
+|           |   |   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.deps.json
+|           |   |   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll
+|           |   |   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll.config
+|           |   |   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.runtimeconfig.json
+|           |   |   Newtonsoft.Json.dll
+|           |   |   System.Collections.Immutable.dll
+|           |   |   System.CommandLine.dll
+|           |   |   
+|           |   +---cs
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---de
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---es
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---fr
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---it
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---ja
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---ko
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---pl
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---pt-BR
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---ru
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---tr
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   +---zh-Hans
+|           |   |       System.CommandLine.resources.dll
+|           |   |       
+|           |   \---zh-Hant
+|           |           System.CommandLine.resources.dll
+|           |           
+|           +---cs
+|           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |       Microsoft.CodeAnalysis.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |       
+|           +---de
+|           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |       Microsoft.CodeAnalysis.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |       
+|           +---es
+|           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |       Microsoft.CodeAnalysis.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |       
+|           +---fr
+|           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |       Microsoft.CodeAnalysis.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |       
+|           +---it
+|           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |       Microsoft.CodeAnalysis.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |       
+|           +---ja
+|           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |       Microsoft.CodeAnalysis.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |       
+|           +---ko
+|           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |       Microsoft.CodeAnalysis.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |       
+|           +---pl
+|           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |       Microsoft.CodeAnalysis.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |       
+|           +---pt-BR
+|           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |       Microsoft.CodeAnalysis.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |       
+|           +---ru
+|           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |       Microsoft.CodeAnalysis.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |       
+|           +---runtimes
+|           |   \---win
+|           |       \---lib
+|           |           \---net9.0
+|           |                   System.Windows.Extensions.dll
+|           |                   
+|           +---tr
+|           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |       Microsoft.CodeAnalysis.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |       
+|           +---zh-Hans
+|           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |       Microsoft.CodeAnalysis.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+|           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |       
+|           \---zh-Hant
+|                   Microsoft.CodeAnalysis.CSharp.resources.dll
+|                   Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|                   Microsoft.CodeAnalysis.resources.dll
+|                   Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+|                   Microsoft.CodeAnalysis.Workspaces.resources.dll
+|                   
++---Controllers
+|       WeatherForecastController.cs
+|       
++---Data
+|   |   JokesDbContext.cs
+|   |   
+|   \---Converters
+|           AnswerTextConverter.cs
+|           JokeIdConverter.cs
+|           QuestionTextConverter.cs
+|           UserIdConverter.cs
+|           
++---Domain
+|   +---Attributes
+|   |       CustomEmailAttribute.cs
+|   |       
+|   +---Errors
+|   |       ApplicationUserErrorMessages.cs
+|   |       ErrorMessages.cs
+|   |       JokeErrorMessages.cs
+|   |       
+|   +---Events
+|   |       DomainEvent.cs
+|   |       IDomainEvent.cs
+|   |       JokeWasCreated.cs
+|   |       JokeWasLiked.cs
+|   |       JokeWasUnliked.cs
+|   |       JokeWasUpdated.cs
+|   |       
+|   +---Exceptions
+|   |       DomainException.cs
+|   |       DomainOperationException.cs
+|   |       DomainValidationException.cs
+|   |       UnauthorizedDomainOperationException.cs
+|   |       
+|   \---ValueObjects
+|           AnswerText.cs
+|           JokeId.cs
+|           QuestionText.cs
+|           UserId.cs
+|           
++---DTOs
+|       JokeDto.cs
+|       RegisterUserDto.cs
+|       UserDto.cs
+|       
++---Migrations
+|       20251201135759_InitialCreate.cs
+|       20251201135759_InitialCreate.Designer.cs
+|       JokesDbContextModelSnapshot.cs
+|       
++---Models
+|       ApplicationUser.cs
+|       Joke.cs
+|       
++---obj
+|   |   JokesApp.Server.csproj.nuget.dgspec.json
+|   |   JokesApp.Server.csproj.nuget.g.props
+|   |   JokesApp.Server.csproj.nuget.g.targets
+|   |   project.assets.json
+|   |   project.nuget.cache
+|   |   
+|   \---Debug
+|       \---net10.0
+|           |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+|           |   apphost.exe
+|           |   JokesApp.7AF9377A.Up2Date
+|           |   JokesApp.Server.AssemblyInfo.cs
+|           |   JokesApp.Server.AssemblyInfoInputs.cache
+|           |   JokesApp.Server.assets.cache
+|           |   JokesApp.Server.csproj.AssemblyReference.cache
+|           |   JokesApp.Server.csproj.BuildWithSkipAnalyzers
+|           |   JokesApp.Server.csproj.CoreCompileInputs.cache
+|           |   JokesApp.Server.csproj.FileListAbsolute.txt
+|           |   JokesApp.Server.dll
+|           |   JokesApp.Server.GeneratedMSBuildEditorConfig.editorconfig
+|           |   JokesApp.Server.genruntimeconfig.cache
+|           |   JokesApp.Server.GlobalUsings.g.cs
+|           |   JokesApp.Server.MvcApplicationPartsAssemblyInfo.cache
+|           |   JokesApp.Server.MvcApplicationPartsAssemblyInfo.cs
+|           |   JokesApp.Server.pdb
+|           |   rjsmcshtml.dswa.cache.json
+|           |   rjsmrazor.dswa.cache.json
+|           |   rpswa.dswa.cache.json
+|           |   spa.proxy.json
+|           |   staticwebassets.build.endpoints.json
+|           |   staticwebassets.build.json
+|           |   staticwebassets.build.json.cache
+|           |   staticwebassets.references.upToDateCheck.txt
+|           |   staticwebassets.removed.txt
+|           |   swae.build.ex.cache
+|           |   
+|           +---ref
+|           |       JokesApp.Server.dll
+|           |       
+|           +---refint
+|           |       JokesApp.Server.dll
+|           |       
+|           \---staticwebassets
++---Properties
+|       launchSettings.json
+|       
+\---Server_Backup
+    +---BackupSQL
+    |       jokesdb_20251201_164308.backup
+    |       
+    \---SnapshotProject
