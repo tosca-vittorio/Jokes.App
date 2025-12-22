@@ -5,7 +5,7 @@ I **Design Patterns GoF** non sostituiscono Clean Architecture, DDD o Hexagonal 
 👉 **vivono dentro i layer giusti**, migliorandone la qualità strutturale.
 👉 **non vanno applicati per moda**, ma quando risolvono problemi concreti.
 
-I documenti che hai scritto descrivono un progetto composto da *Domain, Application, Infrastructure, API, Cross-Cutting* .
+Il progetto è organizzato in Domain, Application, Infrastructure, API, Cross-Cutting.
 Ogni pattern GoF si applica **solo in alcuni layer**, e soprattutto **solo quando necessario**.
 
 ---
@@ -18,7 +18,7 @@ Ogni pattern GoF si applica **solo in alcuni layer**, e soprattutto **solo quand
 | **Strutturali** (Adapter, Facade, Composite, Proxy, Decorator)                       | Application, Infrastructure | Perfetti nella Port/Adapter Architecture e integrazioni esterne       |
 | **Comportamentali** (Observer, Mediator, Strategy, Command, Chain of Responsibility) | Domain, Application         | Ideali per domain events, orchestrazione e use case                   |
 
-Questa tabella rispecchia la tua architettura documentata nei file  .
+Questa tabella è coerente con l’architettura descritta in `JokesApp.Doc/ARCHITECTURE.md`.
 
 ---
 
@@ -28,24 +28,24 @@ Questa tabella rispecchia la tua architettura documentata nei file  .
 
 #### **Factory / Factory Method — *Consigliatissimo per il tuo Dominio***
 
-Nel tuo dominio hai:
+Nel Domain Layer sono presenti:
 
 * Value Objects (`JokeId`, `AnswerText`, `QuestionText`)
 * Aggregate roots (`Joke`, `ApplicationUser`)
 * Domain Events (`JokeWasCreated`, ecc.)
 
-Questi elementi devono rispettare **invarianti e regole di validazione** definite nel Domain Layer (documentate nei tuoi file) .
+Questi elementi devono rispettare **invarianti e regole di validazione** definite nel Domain Layer (documentate nella documentazione di dominio).
 
 💡 **Applicazione consigliata:**
 
 * Crea **static factories** per impedire stati incoerenti.
-* Esempio: `Joke.Create(questionText, answerText, userId)` produce l’oggetto già in uno “stato valido” e pubblica l’evento `JokeWasCreated`.
+* **Esempio (AS-IS):** `Joke.Create(questionText, answerText, userId)` crea un aggregate già valido e genera l’evento `JokeWasCreated`.
 
 #### **Builder**
 
 Utile quando una Entity complessa richiede molti parametri opzionali.
 
-Nel tuo dominio:
+Nel Domain Layer:
 → può essere utile per costruire oggetti `ApplicationUser` con molte proprietà e validazioni.
 
 ---
@@ -54,7 +54,7 @@ Nel tuo dominio:
 
 #### **Adapter — *Il pattern più importante nel tuo progetto***
 
-Il tuo file *ARCHITECTURE.md* descrive chiaramente l’uso dell’architettura esagonale (Ports & Adapters) .
+Il file *ARCHITECTURE.md* descrive chiaramente l’uso dell’architettura esagonale (Ports & Adapters) .
 
 I repository concreti in Infrastructure (es. EF Core) **sono Adapter**:
 
@@ -100,15 +100,15 @@ Hai già implementato:
 Questo è esattamente **l’Observer pattern**, applicato in chiave DDD.
 L’Application Layer sarà l’**Event Dispatcher** che notificherà i listener.
 
-#### **Command — Già presente nel tuo CQRS leggero**
+#### **Command — CQRS leggero (TO-BE)**
 
-Nel tuo *README* descrivi l’idea di:
+Nel *README* di root (entrypoint del repository) descrivi l’idea di:
 
 * Command
 * Query
 * Handlers
 
-Questo è letteralmente il GoF **Command Pattern**.
+Questo corrisponde concettualmente al **GoF Command Pattern**.
 In Clean Architecture + CQRS:
 
 ➡ il “Command Handler” **è** il Command pattern.
@@ -148,6 +148,8 @@ Questo mantiene il Domain puro, coerente e indipendente dalla tecnologia.
 ---
 
 ### **Step 2 — Struttura l’Application Layer con Command + Mediator**
+
+> **Nota:** l’adozione strutturata di Command/Mediator sarà consolidata con l’introduzione di un Application Layer dedicato (TO-BE).
 
 Se decidi di usare MediatR o un Dispatcher manuale:
 
@@ -220,11 +222,8 @@ I pattern GoF non vanno documentati come moduli separati, ma come **strumenti in
 * *README* (overview architetturale) 
 * *ARCHITECTURE.md* (layer dettagliati, DDD e Hexagonal) 
 
-👉 Devi aggiungere una nuova sezione **“Design Patterns Adopted”** dentro *JokesApp.Doc/JokesApp.Server/Architecture.md* che spiega:
+Questo documento rappresenta la **fonte di verità** per i Design Patterns adottati nel progetto.
 
-* quali pattern usi,
-* in quale layer si trovano,
-* a quale responsabilità architetturale rispondono,
-* perché sono stati scelti.
+I documenti specifici per area (es. Server, Client, Tests) possono **linkare** questo file quando necessario, evitando duplicazioni e mantenendo un unico punto di manutenzione.
 
 ---
