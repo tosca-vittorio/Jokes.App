@@ -1,4 +1,4 @@
-# 🚀📘 **JokesApp — Git Workflow Creation & Initial DevOps Setup (Monorepo)**
+# 🚀📘 **JokesApp — 1. Git Workflow Creation & Bootstrap (Monorepo)**
 
 Questa guida descrive i passaggi **one-time** e **recurring** per creare correttamente la monorepo JokesApp (React + ASP.NET Core + Tests) e pubblicarla su GitHub senza errori tipici (repo annidate, staging sporco, file segreti versionati). È il punto di partenza del percorso DevOps: Git, GitHub, CI/CD, monorepo management.
 
@@ -10,7 +10,7 @@ Questo documento contiene sia:
 
 ### PARTE 2:
 - **CI/CD**: pipeline e basi DevOps            
-
+> **Status**: TO-BE (non ancora implementata in questo documento).
 ---
 
 ## ⬜ 1. Scelta Architetturale: Monorepo 
