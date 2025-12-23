@@ -8,6 +8,10 @@ I **Design Patterns GoF** non sostituiscono Clean Architecture, DDD o Hexagonal 
 Il progetto è organizzato in Domain, Application, Infrastructure, API, Cross-Cutting.
 Ogni pattern GoF si applica **solo in alcuni layer**, e soprattutto **solo quando necessario**.
 
+### 🔎 Stato attuale (truth-first)
+- **AS-IS (implementato)**: factory statiche nei Value Object/aggregate per garantire invarianti; Domain Events come meccanismo di notifica (Observer-style) già presenti nel Domain.
+- **TO-BE (non ancora implementato)**: Adapter/Facade/Decorator per Infrastructure/Application; Command/CQRS e Mediator; Strategy/Chain of Responsibility e altre varianti comportamentali. Se la doc li cita, va intesa come direzione futura.
+
 ---
 
 ## 1. 📌 Dove si applicano i GoF nei tuoi layer
@@ -54,11 +58,11 @@ Nel Domain Layer:
 
 ### 2.2 Structural Patterns (perfetti per la tua Hexagonal Architecture)
 
-#### **Adapter — *Il pattern più importante nel tuo progetto***
+#### **Adapter — *Il pattern più importante nel tuo progetto (TO-BE)***
 
-Il file *ARCHITECTURE.md* descrive chiaramente l’uso dell’architettura esagonale (Ports & Adapters) .
+Il file *ARCHITECTURE.md* descrive l’adozione esagonale (Ports & Adapters) come **direzione**.
 
-I repository concreti in Infrastructure (es. EF Core) **sono Adapter**:
+Quando saranno introdotti repository concreti in Infrastructure (es. EF Core), essi fungeranno da Adapter:
 
 > **Stato attuale:** in `JokesApp.Server` è presente il `DbContext` con converters e migration; non sono ancora state definite le interfacce di Port né gli Adapter concreti (TO-BE).
 
@@ -67,7 +71,7 @@ Application Layer → IRepo (Port)
 Infrastructure → RepoEFCore (Adapter)
 ```
 
-🔧 Il pattern GoF “Adapter” formalizza esattamente questo concetto.
+🔧 Il pattern GoF “Adapter” formalizza questo concetto ed è **TO-BE** finché i repository non esistono.
 
 #### **Facade**
 
@@ -93,7 +97,7 @@ Potresti implementarlo per avvolgere i repository con log automatico degli acces
 
 ### 2.3 Behavioral Patterns (fondamentali nel Domain + Application)
 
-#### **Observer — Già presente nei tuoi Domain Events**
+#### **Observer — Già presente nei Domain Events (AS-IS, dispatcher TO-BE)**
 
 Hai già implementato:
 
@@ -101,8 +105,8 @@ Hai già implementato:
 * `DomainEvent`
 * `JokeWasCreated`, `JokeWasLiked`, ecc.
 
-Questo è esattamente **l’Observer pattern**, applicato in chiave DDD.
-L’Application Layer sarà l’**Event Dispatcher** che notificherà i listener.
+Questa è un’applicazione **Observer-style** lato Domain.
+L’Application Layer fungerà da **Event Dispatcher** quando verrà introdotto (TO-BE) per notificare i listener.
 
 #### **Command — CQRS leggero (TO-BE)**
 
@@ -117,7 +121,7 @@ In Clean Architecture + CQRS:
 
 ➡ il “Command Handler” **è** il Command pattern.
 
-#### **Strategy — Perfetto per logiche variabili**
+#### **Strategy — Perfetto per logiche variabili (TO-BE)**
 
 Esempi:
 
@@ -125,7 +129,7 @@ Esempi:
 * diverse modalità di sorting o filtraggio di jokes,
 * plugin per generazione notifiche.
 
-#### **Chain of Responsibility**
+#### **Chain of Responsibility (TO-BE)**
 
 Utile per pipeline di validazione o autorizzazione.
 
