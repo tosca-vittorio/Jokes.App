@@ -102,7 +102,7 @@ L’Application Layer sarà l’**Event Dispatcher** che notificherà i listener
 
 #### **Command — CQRS leggero (TO-BE)**
 
-Nel *README* di root (entrypoint del repository) descrivi l’idea di:
+In *ARCHITECTURE (TO-BE)* è dichiarata l’idea di:
 
 * Command
 * Query
