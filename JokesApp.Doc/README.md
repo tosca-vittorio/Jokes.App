@@ -51,9 +51,9 @@ Serve a:
 - `JokesApp.Client/README.md` → struttura UI, routing previsto, servizi API, convenzioni locali
 
 ### Se devi lavorare sui Test
-- `JokesApp.Tests/README.md` → overview test
-- `JokesApp.Tests/doc/testing_targets.md` → obiettivi/target di test
-- `JokesApp.Tests/Data/` → setup e note su DbContext test
+- `./JokesApp.Tests/README.md` → overview test (stato attuale)
+- `./JokesApp.Tests/toDo.md` → backlog test
+> I file `doc/*` citati in precedenza non esistono ancora nel repository corrente (TO-BE).
 
 ### Se devi aggiungere/aggiornare documentazione
 - `CONVENTIONS.md` → regole di naming/struttura e convenzioni documentali
@@ -76,23 +76,11 @@ Serve a:
 
 ### 🔴 Backend — `JokesApp.Doc/JokesApp.Server/`
 Entry-point principali:
-- `Program.md` — bootstrap/hosting/config/middleware/DI
+- `Program.md` — bootstrap/hosting/config/middleware/DI (AS-IS)
 - `TIMELINE.md` — sequenza di sviluppo/integrazione
-- `A_postgresql_appsettingsjson.md` — note pratiche su PostgreSQL + configurazione
-- `B_entity_framework.md` — note pratiche su EF Core e persistenza
+- `A_postgresql_appsettingsjson.md` — note pratiche su PostgreSQL + configurazione (AS-IS)
+- `B_entity_framework.md` — note pratiche su EF Core e persistenza (AS-IS)
 
-Indice “per argomento”:
-- **Domain** → `JokesApp.Server/Domain/`
-  - `Entities/` (entità)
-  - `ValueObjects/` (VO)
-  - `Events/` (domain events)
-  - `Exceptions/` (eccezioni di dominio)
-  - `Errors/` (messaggi/error catalog)
-  - `Primitives/` (primitive/aggregate root)
-- **Data (persistence)** → `JokesApp.Server/Data/`
-- **DTOs (contratti API)** → `JokesApp.Server/DTOs/`
-- **Validation** → `JokesApp.Server/Validation/`
-- **Migrations** → `JokesApp.Server/Migrations/`
 
 ### 🔵 Frontend — `JokesApp.Doc/JokesApp.Client/`
 Cartella dedicata alla documentazione del client (struttura UI, routing, servizi API, convenzioni).  

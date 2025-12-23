@@ -24,6 +24,8 @@ Questa tabella è coerente con l’architettura descritta in `JokesApp.Doc/ARCHI
 
 ## 2. 📘 Pattern GOF e la tua architettura (uno per uno)
 
+> **Stato attuale (AS-IS):** il dominio usa factory + domain events; non esistono ancora use case/handler applicativi né repository concreti. I punti marcati come TO-BE sono indicazioni per le prossime iterazioni.
+
 ### 2.1 Creational Patterns (per la creazione controllata nel Domain)
 
 #### **Factory / Factory Method — *Consigliatissimo per il tuo Dominio***
@@ -57,6 +59,8 @@ Nel Domain Layer:
 Il file *ARCHITECTURE.md* descrive chiaramente l’uso dell’architettura esagonale (Ports & Adapters) .
 
 I repository concreti in Infrastructure (es. EF Core) **sono Adapter**:
+
+> **Stato attuale:** in `JokesApp.Server` è presente il `DbContext` con converters e migration; non sono ancora state definite le interfacce di Port né gli Adapter concreti (TO-BE).
 
 ```
 Application Layer → IRepo (Port)
@@ -149,7 +153,7 @@ Questo mantiene il Domain puro, coerente e indipendente dalla tecnologia.
 
 ### **Step 2 — Struttura l’Application Layer con Command + Mediator**
 
-> **Nota:** l’adozione strutturata di Command/Mediator sarà consolidata con l’introduzione di un Application Layer dedicato (TO-BE).
+> **Nota:** l’adozione strutturata di Command/Mediator sarà consolidata con l’introduzione di un Application Layer dedicato (TO-BE). Attualmente l’application layer non è presente.
 
 Se decidi di usare MediatR o un Dispatcher manuale:
 

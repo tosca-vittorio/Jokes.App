@@ -169,8 +169,8 @@ senza introdurre complessità infrastrutturale (bus, event sourcing, ecc.) se no
 
 ### AS-IS (oggi nel repo)
 - **Domain**: presente e consistente (Entities, Value Objects, Domain Events, Exceptions).
-- **Presentation/API**: presente (Controllers; al momento incluso controller template) + contratti esterni (DTOs).
-- **Data/Infrastructure (persistenza)**: presente tramite EF Core (`Data/`, `Migrations/`, converters).
+- **Presentation/API**: presente (solo controller template `WeatherForecastController`; DTO usati solo come contratti di base).
+- **Data/Infrastructure (persistenza)**: presente tramite EF Core (`Data/`, `Migrations/`, converters) e Identity registrata; richiede una connection string valida per avvio/fail-fast.
 - **Application layer**: **non ancora separato come layer dedicato**; parte dell’orchestrazione è ancora in evoluzione.
 
 ### TO-BE (obiettivo prossimo)

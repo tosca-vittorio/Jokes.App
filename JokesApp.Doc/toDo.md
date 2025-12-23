@@ -200,7 +200,7 @@ Possibili estensioni naturali del modello `Joke` (solo se emergono casi d’uso 
 ## C1) Stato attuale ✅/🟡
 - ✅ Documentazione Domain (file-by-file) completata e allineata
 - ✅ TIMELINE.md aggiornata (con 06a/06b e 07a/07b, … , ✅/🟡/⬜)
-- 🟡 README/ROADMAP/ARCHITECTURE: da riallineare allo stato reale
+- ✅ README/ROADMAP/ARCHITECTURE: riallineati allo stato reale
 
 ## C2) Da fare ⬜
 - ⬜ Aggiornare albero directory nel README root (quando stabilizzi i layer)
@@ -222,4 +222,4 @@ Possibili estensioni naturali del modello `Joke` (solo se emergono casi d’uso 
 | Identity/JWT      | ⬜ Da fare |
 | Client            | ⬜ Da fare (non verificato) |
 | Testing           | ⬜ Da impostare/implementare |
-| Doc generale       | 🟡 Da riallineare (README/ROADMAP/ARCHITECTURE) |
+| Doc generale       | ✅ Riallineato (README/ROADMAP/ARCHITECTURE) |
