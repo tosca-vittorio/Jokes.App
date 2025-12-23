@@ -51,7 +51,7 @@ Serve a:
 - `JokesApp.Client/README.md` → struttura UI, routing previsto, servizi API, convenzioni locali
 
 ### Se devi lavorare sui Test
-- `./JokesApp.Tests/README.md` → overview test (stato attuale)
+- `./JokesApp.Tests/README.md` → overview test (stato attuale) + link al **domain test matrix**
 - `./JokesApp.Tests/toDo.md` → backlog test
 - `./JokesApp.Tests/doc/testing_targets.md` e `./JokesApp.Tests/doc/testing_theory_introduction.md` → strategia e teoria sui test
 
