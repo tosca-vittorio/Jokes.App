@@ -46,10 +46,25 @@ Il progetto Console .NET è perfetto perché:
 Si consiglia di organizzare i test così:
 
 ```
-JokesApp.Test/
- └─ Models/
-     └─ JokeTests.cs
+JokesApp.Tests/
+ ├─ Domain/
+ │   ├─ ValueObjects/
+ │   ├─ Aggregates/
+ │   └─ Primitives/
+ ├─ Models/
+ └─ Data/
 ```
+
+---
+
+## 📂 Documentazione di riferimento
+
+* 📄 **Matrice dominio & piano file**: `JokesApp.Doc/JokesApp.Tests/Domain/01_DomainTestMatrix.md`
+* 📄 **Test modello Joke**: `JokesApp.Doc/JokesApp.Tests/Model/03_JokeTest.md`
+* 📄 **Test modello ApplicationUser**: `JokesApp.Doc/JokesApp.Tests/Model/04_ApplicationUserTest.md`
+* 📄 **Validator email**: `JokesApp.Doc/JokesApp.Tests/Domain/Attributes/04_CustomEmailAttributeTest.md`
+
+Questi documenti indicano **cosa** testare (matrice) e **come** mantenere le convenzioni attuali (messaggi di dominio, AAA, FluentAssertions).
 
 ---
 
