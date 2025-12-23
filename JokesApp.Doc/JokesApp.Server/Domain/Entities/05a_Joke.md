@@ -1,6 +1,6 @@
 # 📘 **05a_Joke.md**
 
-### *Entità di dominio e Aggregate Root del sottodominio “Joke”*
+### _Entità di dominio e Aggregate Root del sottodominio “Joke”_
 
 ---
 
@@ -54,22 +54,22 @@ namespace JokesApp.Server.Domain.Entities
 
 Dipende esclusivamente da:
 
-* **BCL**: `System`, `System.Collections.Generic`;
-* **Domain Layer**:
+- **BCL**: `System`;
+- **Domain Layer**:
 
-  * `JokesApp.Server.Domain.ValueObjects` → `JokeId`, `QuestionText`, `AnswerText`, `UserId`;
-  * `JokesApp.Server.Domain.Events` → `IDomainEvent`, `JokeWasCreated`, `JokeWasUpdated`,
+  - `JokesApp.Server.Domain.ValueObjects` → `JokeId`, `QuestionText`, `AnswerText`, `UserId`;
+  - `JokesApp.Server.Domain.Events` → `IDomainEvent`, `JokeWasCreated`, `JokeWasUpdated`,
     `JokeWasLiked`, `JokeWasUnliked`;
-  * `JokesApp.Server.Domain.Errors` → `JokeErrorMessages`, `ApplicationUserErrorMessages`;
-  * `JokesApp.Server.Domain.Exceptions` → `DomainValidationException`,
+  - `JokesApp.Server.Domain.Errors` → `JokeErrorMessages`, `ApplicationUserErrorMessages`;
+  - `JokesApp.Server.Domain.Exceptions` → `DomainValidationException`,
     `DomainOperationException`, `UnauthorizedDomainOperationException`
     (cfr. `01_DomainValidationException.md`, `01_DomainOperationException.md`,
     `01_UnauthorizedDomainOperationException.md`).
 
 Sono stati volutamente rimossi:
 
-* attributi infrastrutturali (`[NotMapped]`, `[JsonIgnore]`, ecc.),
-* riferimenti a `Models` o ad altri livelli applicativi.
+- attributi infrastrutturali (`[NotMapped]`, `[JsonIgnore]`, ecc.),
+- riferimenti a `Models` o ad altri livelli applicativi.
 
 Questo rende `Joke` una vera entità di **dominio puro**, adatta a Clean Architecture.
 
@@ -94,8 +94,8 @@ Gli **invarianti** garantiti dal dominio sono:
 
 1. **Question e Answer sono sempre Value Object validi**
 
-   * `Question` e `Answer` vengono passati come `QuestionText` e `AnswerText`.
-   * Le loro regole (non null, non vuoti, lunghezza massima, ecc.) sono già verificate
+   - `Question` e `Answer` vengono passati come `QuestionText` e `AnswerText`.
+   - Le loro regole (non null, non vuoti, lunghezza massima, ecc.) sono già verificate
      a monte dai rispettivi VO (vedi `04a_QuestionText.md` e `04a_AnswerText.md`).
 
 2. **Question e Answer non possono essere identiche**
@@ -116,36 +116,36 @@ Gli **invarianti** garantiti dal dominio sono:
 
    Questo vincolo è applicato:
 
-   * nel costruttore di dominio,
-   * nel metodo `Update`,
-   * in `ValidateIntegrity()` (per verifiche interne/test).
+   - nel costruttore di dominio,
+   - nel metodo `Update`,
+   - in `ValidateIntegrity()` (per verifiche interne/test).
 
 3. **ApplicationUserId è un Value Object valido**
 
-   * `ApplicationUserId` è di tipo `UserId`.
-   * Le regole di validazione (non nullo, non vuoto, lunghezza massima, ecc.) sono incapsulate
+   - `ApplicationUserId` è di tipo `UserId`.
+   - Le regole di validazione (non nullo, non vuoto, lunghezza massima, ecc.) sono incapsulate
      nel VO `UserId` (vedi `04a_UserId.md`), non nell’entità.
 
 4. **Coerenza autore ↔ ApplicationUserId (quando l’autore è presente)**
 
-   * La proprietà di navigazione `Author` è opzionale e rappresenta un **enrichment**:
+   - La proprietà di navigazione `Author` è opzionale e rappresenta un **enrichment**:
      l’entità `Joke` può essere perfettamente valida anche con `Author == null`,
      purché `ApplicationUserId` sia coerente e valido.
 
-   * Quando `Author` viene valorizzato, `SetAuthor` garantisce che:
-     * l’istanza non sia nulla;
-     * l’`Id` dell’autore non sia vuoto (`author.Id.IsEmpty == false`);
-     * l’autore non sia già stato impostato;
-     * `author.Id` sia coerente con `ApplicationUserId` (confronto tra due `UserId` tipizzati).
+   - Quando `Author` viene valorizzato, `SetAuthor` garantisce che:
+     - l’istanza non sia nulla;
+     - l’`Id` dell’autore non sia vuoto (`author.Id.IsEmpty == false`);
+     - l’autore non sia già stato impostato;
+     - `author.Id` sia coerente con `ApplicationUserId` (confronto tra due `UserId` tipizzati).
 
    In altre parole, l’invariante “forte” del dominio riguarda **sempre** `ApplicationUserId`;
-   `Author` è un riferimento aggiuntivo che deve essere coerente *se e solo se* è valorizzato.
+   `Author` è un riferimento aggiuntivo che deve essere coerente _se e solo se_ è valorizzato.
 
 5. **Likes non vanno mai sotto 0 né oltre `int.MaxValue`**
 
-   * `AddLike()` evita overflow.
-   * `RemoveLike()` impedisce di scendere sotto 0.
-   * Qualsiasi violazione produce una `DomainOperationException` con i messaggi
+   - `AddLike()` evita overflow.
+   - `RemoveLike()` impedisce di scendere sotto 0.
+   - Qualsiasi violazione produce una `DomainOperationException` con i messaggi
      definiti in `JokeErrorMessages` (vedi `03_JokeErrorMessages.md`).
 
 ---
@@ -171,7 +171,7 @@ private Joke()
 /// <param name="question">Value Object contenente la domanda.</param>
 /// <param name="answer">Value Object contenente la risposta.</param>
 /// <param name="userId">Identificatore tipizzato dell'autore.</param>
-public Joke(QuestionText question, AnswerText answer, UserId userId)
+private Joke(QuestionText question, AnswerText answer, UserId userId)
 {
     if (question is null || question.IsEmpty)
     {
@@ -204,26 +204,39 @@ public Joke(QuestionText question, AnswerText answer, UserId userId)
 
     // Con Id domain-generated, l'evento "Created" deve nascere già con un identificatore reale.
     AddDomainEvent(new JokeWasCreated(
-        Id,
-        ApplicationUserId,
-        Question,
-        Answer,
-        CreatedAt));
+     Id,
+     ApplicationUserId,
+     Question,
+     Answer,
+     CreatedAt));
 }
 ```
 
-* Il **costruttore privato** è pensato per gli ORM (es. ORM / strumenti di persistenza) o altri strumenti di persistenza
+- Il **costruttore privato** è pensato per gli ORM (es. ORM / strumenti di persistenza) o altri strumenti di persistenza
   e non dovrebbe essere usato nell’Application Layer. Richiesto da EF Core
 
-* Il **costruttore di dominio**:
+* Il **costruttore di dominio** è privato e viene invocato esclusivamente tramite la factory statica
+  `Joke.Create(QuestionText, AnswerText, UserId)`. In questo modo la creazione passa sempre da un entry point
+  chiaro e testabile che evita stati parziali.
 
-  * richiede Value Object già validi (`QuestionText`, `AnswerText`, `UserId`);
-  * applica la regola “question e answer sono diverse”;
-  * inizializza `CreatedAt` in UTC;
-  * registra un evento `JokeWasCreated` con l’`Id` **reale** generato nel dominio tramite `JokeId.New()`, così da averlo disponibile subito (es. per Domain Events)..
+  Il **costruttore**:
+
+  - richiede Value Object già validi (`QuestionText`, `AnswerText`, `UserId`);
+  - applica la regola “question e answer sono diverse”;
+  - inizializza `CreatedAt` in UTC;
+  - registra un evento `JokeWasCreated` con l’`Id` **reale** generato nel dominio tramite `JokeId.New()`, così da averlo disponibile subito (es. per Domain Events)..
 
 Per i dettagli su `JokeWasCreated` e sugli altri eventi di dominio, si veda la documentazione
 del sottosistema eventi (`Domain/Events`).
+
+Factory pubblica esposta dall’entità:
+
+```csharp
+public static Joke Create(QuestionText question, AnswerText answer, UserId userId)
+    => new(question, answer, userId);
+```
+
+Tutti gli invarianti di creazione passano da questo metodo.
 
 ---
 
@@ -285,7 +298,6 @@ Regole applicate da `SetAuthor`:
 4. **Coerenza tra Author.Id e ApplicationUserId**  
    → `DomainValidationException(AuthorIdMismatch)` se `!author.Id.Equals(ApplicationUserId)`.
 
-
 `IsAuthoredBy(UserId)` fornisce un modo chiaro per verificare la proprietà della joke
 rispetto a un utente ed è utilizzato anche in altre operazioni (es. `Update`).
 
@@ -299,6 +311,10 @@ rispetto a un utente ed è utilizzato anche in altre operazioni (es. `Update`).
 ---
 
 ## 5.6 Comportamenti di dominio: Update, Like, Unlike
+
+Tutti i metodi di modifica invocano `EnsureIdIsInitialized()` prima di operare: se l’entità è stata
+ricreata in uno stato non valido (es. `Id` vuoto da reidratazione incompleta), viene lanciata
+`DomainValidationException(JokeIdEmpty)` per impedire side-effect su oggetti inconsistenti.
 
 ### 5.6.1 Aggiornamento del contenuto (`Update`)
 
@@ -356,17 +372,17 @@ public void Update(UserId userId, QuestionText question, AnswerText answer)
 
 Regole:
 
-* solo l’autore può aggiornare la joke → in caso contrario,
+- solo l’autore può aggiornare la joke → in caso contrario,
   `UnauthorizedDomainOperationException(UpdateNotAllowed)`;
-* question e answer devono continuare a rispettare la regola “non identiche”;
-* `UpdatedAt` viene aggiornato in UTC;
-* viene generato un evento di dominio `JokeWasUpdated`.
+- question e answer devono continuare a rispettare la regola “non identiche”;
+- `UpdatedAt` viene aggiornato in UTC;
+- viene generato un evento di dominio `JokeWasUpdated`.
 
 Qui confluiscono:
 
-* le regole locali dei VO (`QuestionText`, `AnswerText`),
-* le regole di autorizzazione (`IsAuthoredBy` + `UpdateNotAllowed` in `JokeErrorMessages`),
-* la pubblicazione di un evento coerente con il pattern Domain Events.
+- le regole locali dei VO (`QuestionText`, `AnswerText`),
+- le regole di autorizzazione (`IsAuthoredBy` + `UpdateNotAllowed` in `JokeErrorMessages`),
+- la pubblicazione di un evento coerente con il pattern Domain Events.
 
 ### 5.6.2 Gestione like (`AddLike` e `RemoveLike`)
 
@@ -406,14 +422,14 @@ public void RemoveLike()
 
 Regole:
 
-* `Likes` non può superare `int.MaxValue` → se è già al massimo,
+- `Likes` non può superare `int.MaxValue` → se è già al massimo,
   `DomainOperationException(MaximumLikeOfJokeReached)`;
-* `Likes` non può scendere sotto 0 → se è 0,
+- `Likes` non può scendere sotto 0 → se è 0,
   `DomainOperationException(MinimumLikeOfJokeReached)`;
-* ogni modifica al numero di like genera un evento corrispondente:
+- ogni modifica al numero di like genera un evento corrispondente:
 
-  * `JokeWasLiked` dopo l’incremento,
-  * `JokeWasUnliked` dopo il decremento.
+  - `JokeWasLiked` dopo l’incremento,
+  - `JokeWasUnliked` dopo il decremento.
 
 ---
 
@@ -423,12 +439,14 @@ La gestione della coda degli eventi di dominio non è implementata direttamente 
 ma è demandata alla base class `AggregateRoot` (Domain/Primitives).
 
 L’aggregate:
+
 - genera eventi significativi (`JokeWasCreated`, `JokeWasUpdated`, `JokeWasLiked`, `JokeWasUnliked`)
   tramite `AddDomainEvent(...)`;
 - espone la coda tramite `DomainEvents` (read-only);
 - consente all’Application Layer di estrarre e svuotare la coda tramite `PullDomainEvents()` dopo la persistenza.
 
 Pattern adottato:
+
 - il Domain Layer **accumula** gli eventi;
 - l’Application Layer **pubblica/dispatcha** gli eventi e poi “ripulisce” la coda (pull/clear).
 
@@ -446,9 +464,9 @@ public void ValidateIntegrity()
 
 `ValidateIntegrity` offre un entry point esplicito per:
 
-* test,
-* procedure di import,
-* controlli diagnostici,
+- test,
+- procedure di import,
+- controlli diagnostici,
 
 per verificare che lo stato interno dell’entità continui a rispettare gli invarianti
 di dominio (in questo caso: `Id` inizializzato e `Question`/`Answer` non identiche).
@@ -467,15 +485,15 @@ public override string ToString()
 
 La stringa restituita da `ToString()` fornisce una rappresentazione sintetica:
 
-* ID della joke (come `JokeId`),
-* ID dell’utente autore (come `UserId`),
-* data di creazione (ISO 8601, specifica `:O`).
+- ID della joke (come `JokeId`),
+- ID dell’utente autore (come `UserId`),
+- data di creazione (ISO 8601, specifica `:O`).
 
 È pensata per:
 
-* log tecnici,
-* debugging,
-* messaggi diagnostici.
+- log tecnici,
+- debugging,
+- messaggi diagnostici.
 
 ---
 
@@ -483,22 +501,22 @@ La stringa restituita da `ToString()` fornisce una rappresentazione sintetica:
 
 `Joke` è progettata per rispettare i principi fondanti dell’architettura:
 
-* **DDD**
+- **DDD**
 
-  * aggregate root del sottodominio “Joke”;
-  * coordina Value Object, invarianti e domain events;
-  * incapsula completamente le regole di business legate alla vita di una barzelletta.
+  - aggregate root del sottodominio “Joke”;
+  - coordina Value Object, invarianti e domain events;
+  - incapsula completamente le regole di business legate alla vita di una barzelletta.
 
-* **Clean Architecture**
+- **Clean Architecture**
 
-  * vive nel Domain Layer, senza riferimenti a EF, JSON, HTTP o DTO;
-  * gli altri layer si limitano a mappare lo stato della `Joke` verso database o API.
+  - vive nel Domain Layer, senza riferimenti a EF, JSON, HTTP o DTO;
+  - gli altri layer si limitano a mappare lo stato della `Joke` verso database o API.
 
-* **SOLID (SRP)**
+- **SOLID (SRP)**
 
-  * responsabilità unica: rappresentare e gestire il ciclo di vita di una barzelletta
+  - responsabilità unica: rappresentare e gestire il ciclo di vita di una barzelletta
     nel dominio, con le sue regole e i suoi eventi;
-  * non gestisce processi esterni (logging, persistenza, serializzazione, UI).
+  - non gestisce processi esterni (logging, persistenza, serializzazione, UI).
 
 In sintesi, `Joke` è il punto di riferimento centrale per tutte le logiche di business
 legate alle barzellette: chiunque voglia creare, aggiornare, validare o reagire ai cambiamenti
