@@ -1,5 +1,4 @@
-
-## 12. Convenzioni di Codice C# adottate nel progetto
+## Convenzioni di Codice C# adottate nel progetto
 
 ### 1. Convenzioni generali (linee guida Microsoft)
 
@@ -177,4 +176,3 @@ public void GivenValidUser_WhenAddingJoke_ThenJokeIsStored() { }
 5. Favorire l’uso di **commenti XML** (`///`) per documentare classi e metodi pubblici più importanti, così da supportare IntelliSense e la leggibilità del codice.
 
 ---
-
