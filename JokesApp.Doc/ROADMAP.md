@@ -13,7 +13,7 @@ Documento di direzione per mantenere la doc “truth-first”. Riassume lo stato
 - **Frontend**: progetto React + Vite in stato di scaffold, senza routing o chiamate API.
 - **Testing**: solo test di esempio (“green placeholder”), nessuna suite su dominio/persistenza/API.
 - **CI/CD**: nessuna pipeline configurata (`.github/workflows/` non presente).
-- **Documentazione**: hub e documenti globali aggiornati allo stato AS-IS/TO-BE attuale.
+- **Documentazione**: hub e documenti globali aggiornati allo stato AS-IS/TO-BE attuale; audit doc generale chiuso.
 
 ---
 
