@@ -53,7 +53,7 @@ Serve a:
 ### Se devi lavorare sui Test
 - `./JokesApp.Tests/README.md` → overview test (stato attuale)
 - `./JokesApp.Tests/toDo.md` → backlog test
-> I file `doc/*` citati in precedenza non esistono ancora nel repository corrente (TO-BE).
+- `./JokesApp.Tests/doc/testing_targets.md` e `./JokesApp.Tests/doc/testing_theory_introduction.md` → strategia e teoria sui test
 
 ### Se devi aggiungere/aggiornare documentazione
 - `CONVENTIONS.md` → regole di naming/struttura e convenzioni documentali
@@ -80,7 +80,6 @@ Entry-point principali:
 - `TIMELINE.md` — sequenza di sviluppo/integrazione
 - `A_postgresql_appsettingsjson.md` — note pratiche su PostgreSQL + configurazione (AS-IS)
 - `B_entity_framework.md` — note pratiche su EF Core e persistenza (AS-IS)
-
 
 ### 🔵 Frontend — `JokesApp.Doc/JokesApp.Client/`
 Cartella dedicata alla documentazione del client (struttura UI, routing, servizi API, convenzioni).  

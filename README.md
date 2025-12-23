@@ -28,7 +28,7 @@ Il backend segue principi **Clean Architecture** e **Domain-Driven Design (DDD)*
 
 ```text
 /JokesApp
-├─ .github/workflows/           # CI/CD (GitHub Actions)
+├─ .github/workflows/           # CI/CD (GitHub Actions) — non presente (TO-BE)
 ├─ JokesApp.Client/             # Frontend
 ├─ JokesApp.Server/             # Backend
 ├─ JokesApp.Tests/              # Test

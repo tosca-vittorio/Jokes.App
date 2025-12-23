@@ -34,7 +34,7 @@ La monorepo è la scelta migliore per un progetto moderno che integra frontend e
 ├── JokesApp.Server/      → ASP.NET Core Web API
 ├── JokesApp.Tests/       → Test automatici
 ├── JokesApp.Doc/
-├── .github/workflows/
+├── .github/workflows/    → CI/CD (GitHub Actions) — TO-BE (non presente nel repo corrente)
 ├── .gitignore
 └── JokesApp.slnx
 ```
