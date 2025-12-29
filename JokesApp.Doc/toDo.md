@@ -71,8 +71,7 @@ Possibili estensioni naturali del modello `Joke` (solo se emergono casi d’uso 
 - 🟡 `DTOs/*` (JokeDto, UserDto, RegisterUserDto)
 - 🟡 `Data/JokesDbContext.cs`
 - 🟡 `Data/Converters/*`
-- 🟡 `Migrations/*`
-- 🟡 `Controllers/WeatherForecastController.cs` + `WeatherForecast.cs` (template)
+- ⬜ `Migrations/*` (da ricreare dopo riallineamento)
 
 ---
 
@@ -81,8 +80,7 @@ Possibili estensioni naturali del modello `Joke` (solo se emergono casi d’uso 
 ### A3.1 DbContext + EF Core
 - 🟡 Verificare `JokesDbContext` (mapping Entities + VO)
 - 🟡 Verificare `Converters` (ValueObjects <-> DB)
-- 🟡 Verificare migrations esistenti e coerenza con Domain attuale
-- ⬜ Nuova migration (se necessaria) dopo riallineamento mapping
+- ⬜ Ricreare migrations dopo riallineamento mapping
 - ⬜ Policy su timestamp (CreatedAt/UpdatedAt) e constraints DB
 
 ### A3.2 Repository & UoW (interfacce)

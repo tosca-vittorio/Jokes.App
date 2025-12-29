@@ -6,9 +6,9 @@ Documento di direzione per mantenere la doc “truth-first”. Riassume lo stato
 
 ## 1) Stato attuale (AS-IS)
 - **Backend — Domain**: entità/VO/eventi/eccezioni completati e coerenti con DDD.
-- **Backend — Infrastructure**: `JokesDbContext` con ValueConverter, Identity registrata, migration iniziale presente; avvio vincolato alla connection string PostgreSQL (`DefaultConnection`).
-- **Backend — API**: presente solo il controller template `WeatherForecastController`; DTO e attributi di validazione esistono ma non sono ancora usati da endpoint reali.
 - **Backend — Application Layer**: non esiste ancora un layer dedicato (use case/ports/handlers assenti).
+- **Backend — Infrastructure**: `JokesDbContext` e ValueConverter presenti ma da riallineare al Domain; migrations rimosse in attesa di rigenerazione; avvio vincolato alla connection string PostgreSQL (`DefaultConnection`).
+- **Backend — API**: nessun controller reale (template `WeatherForecast` rimosso); DTO e attributi di validazione esistono ma non sono ancora usati da endpoint reali.
 - **Auth**: Identity configurata ma senza pipeline JWT/policy né controller di autenticazione/autorizzazione.
 - **Frontend**: progetto React + Vite in stato di scaffold, senza routing o chiamate API.
 - **Testing**: solo test di esempio (“green placeholder”), nessuna suite su dominio/persistenza/API.

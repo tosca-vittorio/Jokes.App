@@ -38,9 +38,9 @@ Se vuoi continuare in modo rigoroso, il prossimo blocco naturale è:
 
 # 📌 TIMELINE DEL PROGETTO (sequenza completa aggiornata 01 → 11)
 ```md
-00 - Repo hygiene (non funzionale) ⬜
+00 - Repo hygiene (non funzionale) ✅
        ├─ .gitignore (bin/ obj/ *.user Server_Backup/) ✅
-       └─ rimozione template WeatherForecast (se non serve) ⬜
+       └─ rimozione template WeatherForecast ✅
 
 01 - Domain/Exceptions/
        ├─ 01_DomainException.cs/md ✅
@@ -103,7 +103,7 @@ Se vuoi continuare in modo rigoroso, il prossimo blocco naturale è:
 07a - Persistence (Domain Data Model: EF Core + DbContext + Migrations) 🟡
       ├─ Data/JokesDbContext.cs (presente, da verificare) 🟡
       ├─ Data/Converters/*.cs (presenti, da verificare) 🟡
-      ├─ Migrations/* (presenti, da verificare e riallineare al dominio) 🟡
+      ├─ Migrations/* (da ricreare dopo riallineamento) ⬜
       └─ Mapping VO + Entities + relazioni + constraints (da completare) ⬜      
 
 07b - Identity Persistence & Security Baseline (DB + tabelle Identity + policy) ⬜
