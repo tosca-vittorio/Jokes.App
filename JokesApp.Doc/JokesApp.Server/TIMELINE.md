@@ -1,4 +1,6 @@
-# Flow Update pratico (come usarli mentre sviluppi)
+# JokesApp.Doc/JokesApp.Server/TIMELINE.md
+
+## Flow Update pratico (come usarli mentre sviluppi)
 
 * **TIMELINE.md = ordine di sviluppo** (cosa fare prima/dopo) e stato globale per step. 
 * **toDo.md = cruscotto operativo** (cosa esiste / cosa manca / cosa è stato chiuso), anche non ordinato. 
@@ -10,12 +12,12 @@
 
 ### 2) Esegui il blocco fino a “Definition of Done”
 
-Per considerare un punto “chiuso” (✅), la regola che ti consiglio è:
+Per considerare un punto “chiuso” (✅), la regola è:
 
-* codice implementato + verificato (e se serve refactor)
+* codice implementato + verificato
 * documentazione allineata
-* build/run ok (e migrazione aggiornata se siamo in 07a/07b)
-* almeno i test minimi coerenti con lo step (se già presenti)
+* build/run ok 
+* almeno i test minimi coerenti con lo step
 
 ### 3) Aggiorna DOPO il TODO (non prima)
 
@@ -30,17 +32,62 @@ Quando uno step è concluso:
 
 * in TIMELINE cambi 🟡/⬜ → ✅ sullo step (e sulle sotto-voci). 
 
-Quindi sì: **la timeline guida, il TODO traccia e fotografa**. È un flusso molto maturo.
-Se vuoi continuare in modo rigoroso, il prossimo blocco naturale è:
-**00 Repo hygiene → 07a Persistence (DbContext + Converters + Migrations)**.
-
 ---
 
-# 📌 TIMELINE DEL PROGETTO (sequenza completa aggiornata 01 → 11)
+## 📌 TIMELINE DEL SERVER (sequenza completa aggiornata A1 → 10)
+
+### Legenda stati
+- ✅ = completato e verificato
+- 🟡 = presente ma da verificare/chiudere (parziale)
+- ⬜ = da fare
+
 ```md
+A1 - Setup DB locale (PostgreSQL) ✅
+      ├─ Verifica client `psql` + servizio attivo ✅
+      ├─ Creazione DB `jokes` + ruolo `jokes_migrator` ✅
+      ├─ Ownership + privilegi su schema `public` ✅
+      ├─ Verifica permessi via psql (CREATE/DROP test) ✅
+      ├─ .env locale (gitignored) ✅
+      └─ appsettings.json (fallback non sensibile) ✅
+
+      │ │ │
+      ▼ ▼ ▼
+
+A2 - Bootstrap backend (config + connessione DB SENZA EF) 🟡
+      ├─ Program.cs: Caricamento `.env` (DotNetEnv) + env vars in IConfiguration 🟡
+      ├─ Risoluzione connection string (`ConnectionStrings:JokesDb`) 🟡
+      ├─ Preflight DB connectivity (solo Development): `GET /api/db/ping` (Npgsql, `SELECT 1`) ⬜
+      ├─ Fail-fast: se `JokesDb` manca o è vuota → errore chiaro in startup ⬜
+      └─ (post-verifica) disabilitare o rimuovere endpoint `/api/db/ping` fuori da Development ⬜
+
+      │ │ │
+      ▼ ▼ ▼
+
+B - EF Core (preflight: tooling + provider, SENZA DbContext e SENZA migrations) ⬜
+      ├─ Verifica tool `dotnet-ef` (`dotnet ef --version`) ⬜
+      ├─ Installare/validare provider PostgreSQL ⬜
+      │    └─ `Npgsql.EntityFrameworkCore.PostgreSQL` ⬜
+      └─ (se necessario) pacchetto Design-time per EF (`Microsoft.EntityFrameworkCore.Design`) ⬜
+
+ > Nota: in B non si crea DbContext e non si eseguono migrations.
+
+
+      │ │ │
+      ▼ ▼ ▼
+
+C - Baseline architetturale (paradigma backend) ✅
+      ├─ Clean Architecture + Hexagonal ✅
+      └─ DDD + SOLID/DRY/KISS/YAGNI ✅
+
+      │ │ │
+      ▼ ▼ ▼
+
 00 - Repo hygiene (non funzionale) ✅
        ├─ .gitignore (bin/ obj/ *.user Server_Backup/) ✅
        └─ rimozione template WeatherForecast ✅
+
+      │ │ │
+      ▼ ▼ ▼
 
 01 - Domain/Exceptions/
        ├─ 01_DomainException.cs/md ✅
@@ -101,10 +148,16 @@ Se vuoi continuare in modo rigoroso, il prossimo blocco naturale è:
        └─ 06_JokeWasUnliked.cs/md ✅
 
 07a - Persistence (Domain Data Model: EF Core + DbContext + Migrations) 🟡
-      ├─ Data/JokesDbContext.cs (presente, da verificare) 🟡
-      ├─ Data/Converters/*.cs (presenti, da verificare) 🟡
-      ├─ Migrations/* (da ricreare dopo riallineamento) ⬜
-      └─ Mapping VO + Entities + relazioni + constraints (da completare) ⬜      
+
+ > Prerequisiti: 
+ > - A2 completato (config + DB ping OK, SENZA EF)
+ > - B completato (tooling/provider EF pronti, SENZA migrations)
+
+      ├─ Data/JokesDbContext.cs (definizione + configurazione) 🟡
+      ├─ Data/Converters/*.cs (VO ↔ DB) 🟡
+      ├─ Mapping Entities/Aggregates + relazioni + constraints ⬜
+      ├─ Migrations/* (prima migration iniziale) ⬜
+      └─ Applicazione migration su PostgreSQL + verifica schema ⬜
 
 07b - Identity Persistence & Security Baseline (DB + tabelle Identity + policy) ⬜
       ├─ Scelta modello Identity (infrastruttura, non Domain) ⬜
@@ -126,21 +179,15 @@ Se vuoi continuare in modo rigoroso, il prossimo blocco naturale è:
       │
       ▼
 10 - API Controllers & Integration (frontend ↔ backend) 🟡
-      ├─ Program.cs + appsettings* + launchSettings (hosting/config) 🟡
+      ├─ Program.cs (hardening finale hosting/auth pipeline) + appsettings* + launchSettings 🟡
       ├─ JWT auth pipeline (Authentication/Authorization) ⬜
-      └─ Controllers/WeatherForecastController.cs (template / da rimuovere o sostituire) 🟡
-
-      │
-      ▼
-11 - Testing (Unit + Integration + End-to-End) ⬜
-        └─ Unit: Test suite per il Domain da implementare/validare
+      └─ Controllers reali (JokesController / UsersController / AuthController) ⬜
 ```
-
 ---
 
 # 🎯 Interpretazione dettagliata della timeline
 
-## 🧱 Big Step 1 — Domain Layer
+## 🧱 Step 1 — Domain Layer
 
 Obiettivo: un **dominio completo, coerente e indipendente** da DB, framework e HTTP.
 
@@ -210,27 +257,86 @@ Qui collochi correttamente `AggregateRoot`:
 
 ---
 
-## 🗄️ Big Step 2 — Persistence & Infrastructure (prossimo vero step)
+## 🗄️ Step 2 — Persistence & Infrastructure
 
 ### 07 — Persistence 🟡
-Lo step 07 si divide in 07a (Domain model) e 07b (Identity)
+Lo step 07 copre la **persistenza su PostgreSQL** e si divide in:
 
-Qui inizi davvero con:
+- **07a — Domain Data Model (EF Core)**: persistenza del **modello di dominio** (Aggregate/Entities/Value Objects) tramite `DbContext`, mapping e migrations.
+- **07b — Identity Persistence & Security Baseline**: persistenza e configurazione dell’infrastruttura **Identity/Security** (tabelle Identity, policy, ecc.).
 
-* mapping EF Core dei VO,
-* mapping di `Joke` e `ApplicationUser`,
-* relazione `ApplicationUser (1) → (N) Jokes`,
-* migrations.
-
-#### 07a (DbContext/Converters/Migrations del dominio) 🟡
-(mapping EF Core dei VO, mapping di Joke/ApplicationUser, migrations del modello dominio)
-
-#### 07b — Identity Persistence & Security Baseline ⬜
-(Identity tables + migrazioni Identity + policy base: password/lockout/confirmed email)
+> Prerequisito (fuori dallo step 07): completare **A2 — Bootstrap & DB connectivity (senza EF)** con esito positivo (DB ping OK).
+> Questo evita di confondere problemi di configurazione/credenziali con problemi di mapping EF.
 
 ---
 
-## 🧩 Big Step 3 — Application & API Layer
+#### 07a — Persistence del dominio (EF Core + DbContext + Converters + Migrations) 🟡
+
+Obiettivo: rendere persistibile il **Domain Model** in PostgreSQL introducendo EF Core in modo controllato e producendo una **prima migrazione iniziale** riproducibile e verificabile.
+
+##### 07a.1 — Definizione del DbContext del dominio 🟡
+- 🟡 Verificare/implementare `Data/JokesDbContext.cs` come **fonte di verità** per la persistenza del dominio.
+- ⬜ Definire chiaramente dove risiedono le configurazioni (Fluent API / configuration classes), evitando contaminazioni nel Domain Layer (niente attributi EF nel Domain, salvo scelta esplicita documentata).
+- ⬜ Verificare la configurazione di base: provider Npgsql, schema target, naming, ecc. (solo quanto serve allo schema iniziale).
+
+##### 07a.2 — Mapping Entities / Aggregates ⬜
+- ⬜ Mappare le entità principali (almeno `Joke` e `ApplicationUser`) con:
+  - ⬜ Primary Key coerente con gli ID del dominio (Value Object o tipo scalar equivalente).
+  - ⬜ Proprietà richieste / opzionali (Required/Optional) coerenti col Domain.
+  - ⬜ Vincoli di lunghezza e forma (es. max length su testi, URL, display name, ecc.).
+  - ⬜ Indici essenziali (solo se motivati).
+- ⬜ Definire relazioni e cardinalità (es. `ApplicationUser (1) -> (N) Jokes`) con vincoli e comportamento di delete coerenti.
+- ⬜ Se si introducono colonne tecniche (es. CreatedAt/UpdatedAt), documentare dove vivono (Domain vs Infrastructure) e perché.
+
+##### 07a.3 — Mapping dei Value Objects (Converters / Owned Types) 🟡
+- 🟡 Verificare/implementare `Data/Converters/*` per convertire i Value Object del dominio verso tipi persistibili e viceversa.
+- ⬜ Applicare i converter ai mapping corretti (chiavi e proprietà).
+- ⬜ Validare che i converter producano colonne coerenti (tipi, nullability, lunghezze, ecc.).
+- ⬜ Documentare la scelta tecnica: ValueConverter vs Owned Types (se rilevante), in coerenza col progetto.
+
+##### 07a.4 — Prima migration (iniziale) ⬜
+
+> Prerequisito: Step B completato (tooling/provider OK). 
+> In questa fase si eseguono le prime migrazioni del modello dominio.
+
+- ⬜ Decidere convenzione naming migration (es. `InitialDomainModel`).
+- ⬜ Generare la migration iniziale del **solo modello dominio**.
+- ⬜ Applicare la migration su PostgreSQL reale.
+- ⬜ Verificare lo schema risultante:
+  - ⬜ tabelle attese presenti,
+  - ⬜ colonne e tipi corretti,
+  - ⬜ vincoli (PK/FK/unique) coerenti,
+  - ⬜ indici essenziali presenti (se definiti).
+- ⬜ Verificare che l’update sia ripetibile su DB vuoto (riproducibilità).
+
+##### 07a.5 — Definition of Done (07a) ⬜
+- ⬜ `dotnet ef migrations add <nome>` produce una migrazione pulita e consistente.
+- ⬜ `dotnet ef database update` completa senza errori.
+- ⬜ Lo schema risultante è coerente con Domain + mapping.
+- ⬜ `Data/JokesDbContext.cs` e `Data/Converters/*` risultano verificati e “chiudibili”.
+- ⬜ `Migrations/*` presenti e allineate allo stato reale.
+
+Output atteso (quando 07a sarà chiuso):
+- ⬜ `Data/JokesDbContext.cs` → ✅
+- ⬜ `Data/Converters/*` → ✅
+- ⬜ `Migrations/*` → ✅
+- ⬜ DB aggiornato allo schema iniziale del dominio → ✅
+
+---
+
+#### 07b — Identity Persistence & Security Baseline (EF Identity + policy) ⬜
+Obiettivo: introdurre la persistenza Identity (tabelle e migrazioni dedicate) e una baseline minima di security (password policy, lockout, conferme, ecc.), mantenendo la separazione tra Domain Model e Identity Model.
+
+- ⬜ Scelta modello Identity (infrastruttura, non Domain).
+- ⬜ Configurazione EF/Stores Identity + migrazione Identity.
+- ⬜ Password policy + lockout + confirmed email.
+- ⬜ (Opzionale) seeding ruoli/policy.
+- ⬜ Definition of Done (07b): migrazione Identity applicata e pipeline minima coerente.
+
+
+---
+
+## 🧩 Step 3 — Application & API Layer
 
 ### 08 — DTO 🟡
 * Presenti: `JokeDto`, `UserDto`, `RegisterUserDto`
@@ -239,20 +345,10 @@ Qui inizi davvero con:
 ### 09 — Use Cases / Application Services ⬜
 
 ### 10 — Controllers & Integration 🟡
-* Presente: `WeatherForecastController` (template)
+* Template `WeatherForecast` rimosso ✅
 * Da fare: controllers reali + error model + auth pipeline
 * Hosting & configuration (`Program.cs`, `appsettings*`, `launchSettings`)
 * (inclusa la pipeline JWT: Authentication/Authorization + AuthController)
-
----
-
-## ✅ Big Step 4 — Testing
-
-### 11 — Testing ⬜
-
-* Unit: VO + aggregate + primitive
-* Integration: DbContext/Repo + UseCases
-* E2E: pipeline API
 
 ---
 
