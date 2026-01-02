@@ -5,66 +5,137 @@ Documento di direzione per mantenere la doc “truth-first”. Riassume lo stato
 ---
 
 ## 1) Stato attuale (AS-IS)
-- **Backend — Domain**: entità/VO/eventi/eccezioni completati e coerenti con DDD.
-- **Backend — Application Layer**: non esiste ancora un layer dedicato (use case/ports/handlers assenti).
-- **Backend — Infrastructure**: `JokesDbContext` e ValueConverters presenti ma da riallineare al Domain; migrations rimosse in attesa di rigenerazione; avvio vincolato alla connection string PostgreSQL (`JokesDb`), gestita via variabili d’ambiente (caricate da `.env` in locale).
-- **Backend — API**: nessun controller reale; DTO e attributi di validazione esistono ma non sono ancora usati da endpoint reali.
-- **Auth**: Identity da configurare.
-- **Frontend**: progetto React + Vite in stato di scaffold, senza routing o chiamate API.
-- **Testing**: **solution separata `JokesApp.Tests`** (unit test Domain: Value Objects / Entities / Events / Validation) + doc-hub dedicato in `JokesApp.Doc/JokesApp.Tests` (timeline e toDo separati).
-  - Nota: la timeline del Server (`JokesApp.Doc/JokesApp.Server/TIMELINE.md`) resta focalizzata su Domain/Persistence/API e **non** traccia i test.
-- **CI/CD**: nessuna pipeline configurata (`.github/workflows/` non presente).
-- **Documentazione**: hub e documenti globali aggiornati allo stato AS-IS/TO-BE attuale; audit doc generale chiuso.
+
+- **Backend — Bootstrap (A1→A3)**
+  - **A1** completato: PostgreSQL locale + ruolo/permessi + `.env` gitignored + `appsettings.json` placeholder non sensibile.
+  - **A2** in corso: `Program.cs` in stabilizzazione per bootstrap **senza EF** (config environment-aware, fail-fast safe, logging safe, health + readiness DB, ping DB DEV-only).
+  - **A3** non presente: nessun workflow GitHub Actions in `.github/workflows/`.
+
+- **Backend — Domain**
+  - Dominio (VO / Entities / Events / Exceptions) completato e coerente con DDD.
+
+- **Backend — Application Layer**
+  - Non esiste ancora un layer dedicato (Use Cases / Ports / Handlers assenti).
+
+- **Backend — Infrastructure / Persistence**
+  - `JokesDbContext` e ValueConverters presenti ma da riallineare al Domain.
+  - Migrations non consolidate (fase di rigenerazione prevista quando 07a parte).
+  - Connessione DB gestita via variabili d’ambiente in locale (caricate da `.env` in Development).
+
+- **Backend — API**
+  - Nessun controller “di prodotto” reale.
+  - DTO e attributi di validazione esistono ma non sono ancora agganciati a endpoint reali.
+
+- **Auth**
+  - Identity/Security baseline non configurata.
+
+- **Frontend**
+  - React + Vite in stato di scaffold; nessun routing e nessuna integrazione API stabile.
+
+- **Testing**
+  - Solution separata `JokesApp.Tests` con unit test del Domain (Value Objects / Entities / Events / Validation).
+  - Nota: la timeline del Server (`JokesApp.Doc/JokesApp.Server/TIMELINE.md`) traccia Domain/Persistence/API; i test hanno doc-hub dedicato in `JokesApp.Doc/JokesApp.Tests`.
+
+- **CI/CD**
+  - Nessuna pipeline configurata (assenza di `.github/workflows/`).
+
+- **Documentazione**
+  - Hub e documenti globali allineati; TIMELINE e toDo del Server aggiornati (Step 0: A1→A3 introdotto).
 
 ---
 
 ## 2) Milestone vicine (0–1)
-- 🟡 **Allineamento persistenza/boot**
-  - **A2 (senza EF):** config locale (`appsettings.json` / `.env`) + fail-fast; smoke test `GET /api/db/ping` (Npgsql + `SELECT 1`) per validare connection string + raggiungibilità + credenziali.
-  - **B (EF senza migrations):** verificare tooling `dotnet-ef` e installare/validare provider PostgreSQL (`Npgsql.EntityFrameworkCore.PostgreSQL`) + (se serve) `Microsoft.EntityFrameworkCore.Design`.
-  - **07a (quando il Domain è stabile):** riallineare `JokesDbContext` + Converters e rigenerare/applicare le **migrations** su PostgreSQL reale.
 
-- 🟡 **API + Application Layer (MVP Jokes)**  
-  - Definire Ports + Use Case (Create/Update/Like/Unlike/Get) in un Application Layer dedicato.  
-  - Implementare controller HTTP reali (es. `JokesController`) che orchestrano i use case e mappano DTO ↔ dominio.  
-  - Gestire trasformazione errori dominio → HTTP (ProblemDetails o simile).
+### 🟡 Step 0 — Bootstrap & Quality Gate (A1 → A3)
 
-- 🟡 **Identity/Auth pipeline**  
-  - Configurare policy/password/lockout.  
-  - Implementare JWT issuing/validation + controller di auth.  
-  - Proteggere gli endpoint di dominio.
+- **A2 — Bootstrap backend senza EF (priorità massima)**
+  - `.env` **solo Development** (local-first) + `AddEnvironmentVariables()` su configuration.
+  - Risoluzione connection string con priorità esplicita:
+    - A) `ConnectionStrings__JokesDb` (env var, preferita)
+    - B) `ConnectionStrings:JokesDb` (fallback placeholder non sensibile)
+    - C) composizione da `DB_*`
+  - **Fail-fast** se mancano config/placeholder (messaggio safe, senza segreti).
+  - **Logging startup safe**: source connessione + password sempre mascherata.
+  - Pipeline DEV vs NON-DEV:
+    - DEV: OpenAPI + DeveloperExceptionPage
+    - NON-DEV: `UseExceptionHandler()` + `UseHsts()` (baseline)
+  - Endpoint tecnici:
+    - `GET /health` (liveness)
+    - `GET /health/ready` (readiness DB via Npgsql `SELECT 1`, senza EF)
+    - `GET /api/db/ping` **solo Development** (diagnostica temporanea)
+
+- **A3 — CI baseline (GitHub Actions)**
+  - Workflow minimo “quality gate” su `push` + `pull_request`:
+    - `dotnet restore`
+    - `dotnet build --no-restore`
+    - `dotnet test --no-build`
+  - Obiettivo: prima run “verde” su GitHub.
+
+> Nota: A3 è volutamente baseline. Niente Docker/Jenkins/K8s in questa fase.
+
+### 🟡 Preflight EF (B) e avvio 07a
+
+- **B — EF Core preflight (senza DbContext/migrations)**
+  - verificare `dotnet-ef`
+  - validare provider PostgreSQL `Npgsql.EntityFrameworkCore.PostgreSQL`
+  - (se serve) `Microsoft.EntityFrameworkCore.Design`
+
+- **07a — Persistence Domain (quando A2+B sono chiusi)**
+  - riallineare `JokesDbContext` + Converters
+  - rigenerare e applicare migrations su PostgreSQL reale
+  - verificare schema risultante e riproducibilità su DB vuoto
 
 ---
 
 ## 3) Milestone successive (1–2)
-- ⬜ **Frontend first-pass**  
-  - Routing client-side, viste jokes (list/create/update/like).  
+
+- ⬜ **API + Application Layer (MVP Jokes)**
+  - Definire Ports + Use Cases (Create/Update/Like/Unlike/Get/List) in un Application Layer dedicato.
+  - Implementare controller HTTP reali (es. `JokesController`) che orchestrano i use case e mappano DTO ↔ dominio.
+  - Trasformazione errori dominio → HTTP (ProblemDetails o modello coerente).
+
+- ⬜ **Identity/Auth pipeline**
+  - Configurare baseline security (policy/password/lockout).
+  - JWT issuing/validation + controller di auth.
+  - Protezione endpoint.
+
+- ⬜ **Frontend first-pass**
+  - Routing client-side, viste jokes (list/create/update/like).
   - Client HTTP centralizzato per le API backend.
 
-- ⬜ **Testing strategico**  
-  - Unit test su VO/entità/aggregate root.  
-  - Integration test per DbContext + controller.  
+- ⬜ **Testing strategico**
+  - Estendere unit test dove utile (Domain già coperto).
+  - Integration test per DbContext + controller.
   - Hardening auth/JWT con test dedicati.
 
-- ⬜ **Osservabilità & hardening**  
-  - Logging/coerentizzazione errori HTTP.  
-  - Event dispatch del dominio (in-process) dopo commit.  
+- ⬜ **Osservabilità & hardening**
+  - Logging e standardizzazione errori HTTP.
+  - Dispatch DomainEvents (in-process) post-persistenza.
   - Validazione timestamp/constraint DB.
 
 ---
 
 ## 4) Milestone a medio termine (2+) — backlog
-- ⬜ **Realtime / SignalR** per eventi live.  
-- ⬜ **Audit trail / logging funzionale**.  
-- ⬜ **CI/CD**: pipeline build/test (dotnet + npm) e pubblicazione.  
-- ⬜ **Refinement frontend**: UX, state management, testing UI/E2E.
+
+- ⬜ **CD/Deploy** (solo quando esiste un MVP end-to-end)
+  - ambiente di staging minimo
+  - publish/build artifacts
+  - eventuale deploy (provider da decidere)
+
+- ⬜ **Containerization / DevOps avanzato (didattico, non obbligatorio)**
+  - Docker (compose per Postgres + app) quando serve riproducibilità cross-machine
+  - Jenkins/Kubernetes solo se l’obiettivo diventa “pipeline avanzata” o multi-ambiente reale
+
+- ⬜ **Realtime / SignalR** per eventi live
+- ⬜ **Audit trail / logging funzionale**
+- ⬜ **Refinement frontend**: UX, state management, testing UI/E2E
 
 ---
 
 ## 5) Stato degli owner documentali
-- `ARCHITECTURE.md` → allineato al codice attuale (Application layer dichiarato TO-BE).  
-- `DESIGN_PATTERNS.md` → evidenzia pattern usati (factory/events) e quelli TO-BE (adapter/command).  
-- `WORKFLOW.md` → chiarisce che la monorepo è già bootstrapata; CI/CD assente.  
-- `toDo.md` → cruscotto operativo per i task concreti (da usare come fonte di verità).
 
----
+- `ARCHITECTURE.md` → allineato al codice attuale (Application layer dichiarato TO-BE).
+- `DESIGN_PATTERNS.md` → pattern usati (factory/events) e quelli TO-BE (adapter/command).
+- `WORKFLOW.md` → monorepo bootstrapata; CI/CD assente (A3 pianificato).
+- `JokesApp.Doc/JokesApp.Server/TIMELINE.md` → sequenza A1→10 aggiornata (include A3).
+- `JokesApp.Doc/JokesApp.Server/toDo.md` → cruscotto operativo (fonte di verità operativa).
