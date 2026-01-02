@@ -54,11 +54,35 @@ A1 - Setup DB locale (PostgreSQL) ✅
       ▼ ▼ ▼
 
 A2 - Bootstrap backend (config + connessione DB SENZA EF) 🟡
-      ├─ Program.cs: Caricamento `.env` (DotNetEnv) + env vars in IConfiguration 🟡
-      ├─ Risoluzione connection string (`ConnectionStrings:JokesDb`) 🟡
-      ├─ Preflight DB connectivity (solo Development): `GET /api/db/ping` (Npgsql, `SELECT 1`) ⬜
-      ├─ Fail-fast: se `JokesDb` manca o è vuota → errore chiaro in startup ⬜
-      └─ (post-verifica) disabilitare o rimuovere endpoint `/api/db/ping` fuori da Development ⬜
+      ├─ Program.cs: Caricamento `.env` (DotNetEnv) + env vars in IConfiguration (DEV-only .env) 🟡
+      ├─ Risoluzione connection string (priorità esplicita) 🟡
+      │    ├─ A) Env var: `ConnectionStrings__JokesDb` (preferita) 🟡
+      │    ├─ B) Fallback config: `ConnectionStrings:JokesDb` (placeholder non sensibile) 🟡
+      │    └─ C) Composizione da `DB_*` (Host/Port/Name/User/Password) 🟡
+      ├─ Fail-fast: se config DB manca/placeholder → errore chiaro in startup 🟡
+      ├─ Logging startup: tracciamento source connessione + mascheramento password 🟡
+      ├─ Servizi minimi: AddControllers/MapControllers possono essere registrati senza introdurre Controllers reali; in A2 si espongono solo endpoint tecnici (health/ping) via Minimal API. 🟡
+      ├─ Pipeline per ambienti (DEV vs NON-DEV) 🟡
+      │    ├─ DEV: OpenAPI (endpoint spec) solo Development 🟡
+      │    ├─ DEV: DeveloperExceptionPage 🟡
+      │    └─ NON-DEV: exception handling + security baseline (UseExceptionHandler, HSTS) 🟡
+      ├─ DEV: Preflight DB `GET /api/db/ping` (Npgsql, `SELECT 1`) 🟡
+      └─ Health endpoints (safe, anche fuori da Development) 🟡
+           ├─ `GET /health` (liveness: processo vivo) 🟡
+           └─ `GET /health/ready` (readiness DB: Npgsql `SELECT 1`, senza EF) 🟡
+
+ > Nota: in A2 il file .env viene caricato solo in Development (local-first).
+ > Nota: in ambienti NON-DEV la reachability DB è verificata tramite /health/ready (output minimale).
+ > Nota: in A2 si espongono solo endpoint tecnici (health/ping) via Minimal API; eventuale AddControllers/MapControllers è ammesso, ma i Controllers “di prodotto” verranno introdotti nello Step 10.
+ > Nota: A2 copre bootstrap/config + health/diagnostica;
+
+      │ │ │
+      ▼ ▼ ▼
+
+A3 - CI baseline (GitHub Actions) ⬜
+      ├─ Workflow: restore/build/test su push + PR ⬜
+      ├─ Target: .NET SDK coerente col progetto (es. 8.0.x) ⬜
+      └─ Verifica run verde su GitHub ⬜
 
       │ │ │
       ▼ ▼ ▼
@@ -150,7 +174,7 @@ C - Baseline architetturale (paradigma backend) ✅
 07a - Persistence (Domain Data Model: EF Core + DbContext + Migrations) 🟡
 
  > Prerequisiti: 
- > - A2 completato (config + DB ping OK, SENZA EF)
+ > - A2 completato (config + DB reachability verificata via /api/db/ping in DEV o /health/ready, SENZA EF)
  > - B completato (tooling/provider EF pronti, SENZA migrations)
 
       ├─ Data/JokesDbContext.cs (definizione + configurazione) 🟡
@@ -179,13 +203,45 @@ C - Baseline architetturale (paradigma backend) ✅
       │
       ▼
 10 - API Controllers & Integration (frontend ↔ backend) 🟡
-      ├─ Program.cs (hardening finale hosting/auth pipeline) + appsettings* + launchSettings 🟡
+      ├─ Program.cs (hardening hosting + security/auth pipeline + ambienti) + appsettings* + launchSettings 🟡
       ├─ JWT auth pipeline (Authentication/Authorization) ⬜
       └─ Controllers reali (JokesController / UsersController / AuthController) ⬜
+
+ > Nota: lo step 10 estende Program.cs oltre A2 (auth/JWT, CORS, hosting finale, integrazione client, ecc.)
 ```
 ---
 
 # 🎯 Interpretazione dettagliata della timeline
+
+## 🧪 Step 0 — Bootstrap & Quality Gate (A1 → A3)
+
+Obiettivo: stabilizzare l’avvio del backend e introdurre un controllo qualità automatico prima di EF/migrations e prima di iterare sul resto.
+
+### A1 — Setup DB locale ✅
+Serve a garantire che PostgreSQL sia disponibile e correttamente configurato (ruolo dedicato, privilegi, `.env` gitignored, placeholder in appsettings).
+
+### A2 — Bootstrap backend senza EF 🟡
+In A2 si vuole dimostrare che:
+- la configurazione è pulita e “environment-aware” (DEV vs NON-DEV);
+- la connection string viene risolta con priorità esplicita (env cs → fallback config → DB_* compose);
+- l’app fallisce subito se la configurazione DB è assente o fittizia (fail-fast);
+- la diagnostica ricca resta confinata a Development;
+- esistono endpoint minimi standard per verificare stato processo e readiness del DB senza EF.
+
+**Definition of Done (A2)**
+- `GET /health` → 200
+- `GET /health/ready` → 200 se DB raggiungibile, 503 se DB non raggiungibile
+- `/api/db/ping`, OpenAPI e DeveloperExceptionPage → disponibili solo in Development
+- log “startup” senza segreti (password sempre mascherata)
+- In NON-DEV: OpenAPI e /api/db/ping non sono raggiungibili (404 o non mappati).
+
+### A3 — CI baseline (GitHub Actions) ⬜
+Introduce un gate automatico: ogni push/PR deve passare restore/build/test.
+
+**Definition of Done (A3)**
+- workflow presente in `.github/workflows/*`
+- su push/PR: restore/build/test ok
+- prima run su GitHub “verde”
 
 ## 🧱 Step 1 — Domain Layer
 
@@ -265,7 +321,7 @@ Lo step 07 copre la **persistenza su PostgreSQL** e si divide in:
 - **07a — Domain Data Model (EF Core)**: persistenza del **modello di dominio** (Aggregate/Entities/Value Objects) tramite `DbContext`, mapping e migrations.
 - **07b — Identity Persistence & Security Baseline**: persistenza e configurazione dell’infrastruttura **Identity/Security** (tabelle Identity, policy, ecc.).
 
-> Prerequisito (fuori dallo step 07): completare **A2 — Bootstrap & DB connectivity (senza EF)** con esito positivo (DB ping OK).
+> Prerequisito (fuori dallo step 07): reachability DB verificata (bootstrap A2 completato)
 > Questo evita di confondere problemi di configurazione/credenziali con problemi di mapping EF.
 
 ---
