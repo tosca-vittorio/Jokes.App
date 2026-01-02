@@ -1,4 +1,4 @@
-# 📚 JokesApp — Documentation Hub
+# 📚 JokesApp.Doc/README.md — Documentation Hub
 
 Questo file è l’**entrypoint della documentazione** contenuta in `JokesApp.Doc/`.
 Serve a:
