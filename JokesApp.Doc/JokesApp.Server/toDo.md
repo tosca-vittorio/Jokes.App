@@ -19,7 +19,8 @@ Documentazione centralizzata delle attività concluse, in corso o da implementar
 | Area | Stato | Note |
 |---|---|---|
 | A1 Setup DB locale (PostgreSQL) | ✅ | DB/ruolo/permessi + `.env` + `appsettings.json` fallback verificati |
-| A2 Bootstrap (senza EF) | 🟡 | `Program.cs` + config/DI da verificare; manca ping DB + fail-fast |
+| A2 Bootstrap (senza EF) | 🟡 | `Program.cs` env/config + fail-fast + logging safe + health; ping DB solo DEV |
+| A3 CI baseline (GitHub Actions) | ⬜ | restore/build/test su push + PR (quality gate minimo) |
 | B EF Core preflight | ⬜ | tooling/provider ok prima di introdurre DbContext/migrations |
 | Domain Layer (01–06) | ✅ | VO/Entities/Events/Exceptions allineati e documentati |
 | 07a Persistence Domain (EF + DbContext + Migrations) | 🟡 | DbContext/Converters presenti ma da riallineare e verificare; migrations da rigenerare |
@@ -57,18 +58,50 @@ Possibili estensioni naturali del modello `Joke` (solo se emergono casi d’uso 
 
 ## A2) Bootstrap backend (config + connessione DB SENZA EF) 🟡
 
-**Obiettivo A2:** avvio applicazione + config locale + validazione minima della connettività PostgreSQL **senza EF/migrations**.
+**Obiettivo A2:** avvio applicazione + configurazione “environment-aware” + verifica minima DB PostgreSQL **senza EF/migrations**.
 
 ### A2.1 — Config & startup 🟡
-- 🟡 `Program.cs`: caricamento `.env` (DotNetEnv) + env vars in `IConfiguration`
-- 🟡 Risoluzione connection string `ConnectionStrings:JokesDb` (source of truth: env)
-- ⬜ Fail-fast: se `JokesDb` manca o è vuota → errore chiaro in startup (solo in Development, o comunque con messaggio non ambiguo)
+- 🟡 `Program.cs`: caricamento `.env` **solo in Development** (local-first) + `builder.Configuration.AddEnvironmentVariables()`
+- 🟡 Risoluzione connection string con priorità esplicita:
+  - 🟡 A) env var `ConnectionStrings__JokesDb` (preferita)
+  - 🟡 B) fallback config `ConnectionStrings:JokesDb` (placeholder non sensibile)
+  - 🟡 C) composizione da `DB_*` (Host/Port/Name/User/Password)
+- ⬜ Fail-fast: se connection string manca o è placeholder → **errore chiaro in startup** (messaggio safe, senza segreti)  
+- 🟡 Logging startup: tracciamento “source” della connessione + **password sempre mascherata**
 
-### A2.2 — Preflight DB connectivity ⬜
+### A2.2 — Pipeline per ambienti (DEV vs NON-DEV) 🟡
+- 🟡 DEV:
+  - 🟡 OpenAPI disponibile solo in Development
+  - 🟡 DeveloperExceptionPage in Development
+- 🟡 NON-DEV:
+  - ⬜ `UseExceptionHandler()` (gestione errori “pulita”)
+  - ⬜ `UseHsts()` (security baseline)
+
+### A2.3 — Endpoints tecnici (senza EF) 🟡
+- 🟡 Health endpoints (safe, anche fuori da Development):
+  - 🟡 `GET /health` (liveness: processo vivo)
+  - 🟡 `GET /health/ready` (readiness DB: `SELECT 1` con `Npgsql`, **senza EF**)
 - ⬜ Endpoint temporaneo (solo Development): `GET /api/db/ping` → `SELECT 1` con `Npgsql`
-- ⬜ Post-verifica: disabilitare o rimuovere `/api/db/ping` fuori da Development
+- ⬜ Post-verifica: `/api/db/ping` non deve essere raggiungibile fuori da Development (non mappato / 404)
 
 > Nota: A2 serve a separare problemi di credenziali/config da problemi EF/mapping (07a).
+> Nota: in A2 è ammesso registrare `AddControllers/MapControllers`, ma **non** si introducono ancora Controllers “di prodotto” (Step 10).
+
+---
+
+## A3) CI baseline (GitHub Actions) ⬜
+
+**Obiettivo A3:** introdurre un quality gate minimo automatico: ogni push e PR devono passare restore/build/test.
+
+- ⬜ Creare workflow in `.github/workflows/ci.yml`
+- ⬜ Trigger: `push` + `pull_request`
+- ⬜ Steps minimi:
+  - ⬜ `dotnet restore`
+  - ⬜ `dotnet build --no-restore`
+  - ⬜ `dotnet test --no-build`
+- ⬜ Verificare prima run “verde” su GitHub
+
+> Nota: A3 è volutamente “baseline”: niente Docker/Jenkins/K8s qui.
 
 ---
 
@@ -103,7 +136,7 @@ Possibili estensioni naturali del modello `Joke` (solo se emergono casi d’uso 
 
 ## 07a) Persistence — Domain Data Model (EF Core + DbContext + Migrations) 🟡
 
-> Prerequisiti: A2 chiuso (ping OK) + B chiuso (tooling/provider OK).
+> Prerequisiti: A2 chiuso (DB reachability verificata via `/health/ready` e ping DEV-only se previsto) + B chiuso (tooling/provider OK).
 
 - 🟡 Verificare `Data/JokesDbContext.cs` (configurazione + mapping)
 - 🟡 Verificare `Data/Converters/*` (Value Objects ↔ DB)
