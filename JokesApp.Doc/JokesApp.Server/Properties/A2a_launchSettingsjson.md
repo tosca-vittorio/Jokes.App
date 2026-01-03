@@ -1,3 +1,8 @@
+Perfetto! Procediamo con l'aggiornamento del file **`A2a_launchSettingsjson.md`** per riflettere correttamente le modifiche al **file `launchSettings.json`**. L'obiettivo è mantenere alta la qualità, la coerenza e l'accuratezza del documento, come da tue specifiche.
+
+### Documento aggiornato
+
+````markdown
 # 📚 JokesApp.Doc/JokesApp.Server/Properties/A2a_launchSettingsjson.md: Configurazione di `launchSettings.json` per gli ambienti DEV e PROD
 
 *Documentazione tecnica di progetto — configurazione di `launchSettings.json` per la gestione degli ambienti di sviluppo e produzione.*
@@ -9,9 +14,8 @@
 Questo documento descrive la configurazione del file `launchSettings.json` per la gestione degli ambienti di avvio in **Development** e **Production** nell'applicazione JokesApp. Questo setup è essenziale per garantire che il progetto venga eseguito correttamente in ambiente locale durante lo sviluppo e in modalità di produzione durante la fase finale di deploy.
 
 La configurazione contiene due profili principali:
-
-* **`server-dev`**: ambiente di sviluppo, con configurazioni di debug e diagnostica arricchita.
-* **`server-prod`**: ambiente di produzione, con configurazioni ottimizzate per l'uso in un ambiente live.
+- **`server-dev`**: ambiente di sviluppo, con configurazioni di debug e diagnostica arricchita.
+- **`server-prod`**: ambiente di produzione, con configurazioni ottimizzate per l'uso in un ambiente live.
 
 ### 1.1 Principio di separazione degli ambienti
 
@@ -23,10 +27,10 @@ Il file `launchSettings.json` è progettato per separare i profili di avvio e le
 
 Per configurare correttamente il file `launchSettings.json`, sono necessari i seguenti prerequisiti:
 
-* Il progetto è configurato per utilizzare **ASP.NET Core** e supporta **Multiple Environments** (Development/Production).
-* È configurata una connessione al database PostgreSQL, utilizzando variabili d’ambiente o un file `.env` (per l’ambiente di sviluppo).
-* È necessario che il file `launchSettings.json` sia presente nella directory `Properties` del progetto.
-* (Opzionale) Utilizzo di un proxy SPA in ambiente di sviluppo (`Microsoft.AspNetCore.SpaProxy`).
+- Il progetto è configurato per utilizzare **ASP.NET Core** e supporta **Multiple Environments** (Development/Production).
+- È configurata una connessione al database PostgreSQL, utilizzando variabili d’ambiente o un file `.env` (per l’ambiente di sviluppo).
+- È necessario che il file `launchSettings.json` sia presente nella directory `Properties` del progetto.
+- (Opzionale) Utilizzo di un proxy SPA in ambiente di sviluppo (`Microsoft.AspNetCore.SpaProxy`).
 
 ---
 
@@ -36,8 +40,8 @@ Per configurare correttamente il file `launchSettings.json`, sono necessari i se
 | ------------------------------------------------- | --------------------------------------------------- |
 | Profilo per ambiente di sviluppo                  | `server-dev`                                        |
 | Profilo per ambiente di produzione                | `server-prod`                                       |
-| URL di ascolto per sviluppo                       | `https://localhost:7215;http://localhost:5129`      |
-| URL di ascolto per produzione                     | `http://localhost:5129`                             |
+| URL di ascolto per sviluppo                       | `https://localhost:7215;https://localhost:5129`      |
+| URL di ascolto per produzione                     | `https://localhost:7215;https://localhost:5129`      |
 | Variabile `ASPNETCORE_ENVIRONMENT` per sviluppo   | `Development`                                       |
 | Variabile `ASPNETCORE_ENVIRONMENT` per produzione | `Production`                                        |
 | Variabile `ASPNETCORE_HOSTINGSTARTUPASSEMBLIES`   | `Microsoft.AspNetCore.SpaProxy` (solo per sviluppo) |
@@ -52,7 +56,7 @@ Il file `launchSettings.json` contiene la configurazione per due ambienti di avv
 
 ### 4.2 Profilo `server-dev`
 
-Il profilo `server-dev` è destinato all’ambiente di sviluppo. Quando il progetto è avviato con questo profilo, il backend sarà accessibile sia su **HTTP** che **HTTPS** (utilizzando le porte 5129 e 7215). Questo profilo abilita anche il proxy per le SPA, utile quando si sviluppa un’applicazione client in React, Angular, o Vue.js.
+Il profilo `server-dev` è destinato all’ambiente di sviluppo. Quando il progetto è avviato con questo profilo, il backend sarà accessibile sia su **HTTPS** che su **HTTP** (utilizzando le porte 5129 e 7215). Questo profilo abilita anche il proxy per le SPA, utile quando si sviluppa un’applicazione client in React, Angular, o Vue.js.
 
 **Codice del profilo `server-dev`**:
 
@@ -61,7 +65,7 @@ Il profilo `server-dev` è destinato all’ambiente di sviluppo. Quando il proge
   "commandName": "Project",
   "dotnetRunMessages": true,
   "launchBrowser": false,
-  "applicationUrl": "https://localhost:7215;http://localhost:5129",
+  "applicationUrl": "https://localhost:7215;https://localhost:5129",
   "environmentVariables": {
     "ASPNETCORE_ENVIRONMENT": "Development",
     "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy"
@@ -79,7 +83,7 @@ Il profilo `server-dev` è destinato all’ambiente di sviluppo. Quando il proge
 
 ### 4.3 Profilo `server-prod`
 
-Il profilo `server-prod` è destinato all’ambiente di produzione. Con questo profilo, il server ascolta solo su **HTTP** (porta 5129), in quanto in produzione generalmente si usano meccanismi esterni per la gestione di HTTPS (ad esempio, tramite un reverse proxy come Nginx o Apache).
+Il profilo `server-prod` è destinato all’ambiente di produzione. Con questo profilo, il server ascolta su **HTTPS** (porte 7215 e 5129). Sebbene in produzione generalmente si usano meccanismi esterni per la gestione di HTTPS tramite reverse proxy, il profilo è configurato per ascoltare su **HTTPS** anche senza il reverse proxy al momento.
 
 **Codice del profilo `server-prod`**:
 
@@ -88,7 +92,7 @@ Il profilo `server-prod` è destinato all’ambiente di produzione. Con questo p
   "commandName": "Project",
   "dotnetRunMessages": true,
   "launchBrowser": false,
-  "applicationUrl": "http://localhost:5129",
+  "applicationUrl": "https://localhost:7215;https://localhost:5129",
   "environmentVariables": {
     "ASPNETCORE_ENVIRONMENT": "Production"
   }
@@ -100,7 +104,7 @@ Il profilo `server-prod` è destinato all’ambiente di produzione. Con questo p
 * `commandName`: come per lo sviluppo, il progetto è eseguito come applicazione.
 * `dotnetRunMessages`: i messaggi di esecuzione vengono abilitati.
 * `launchBrowser`: disabilita l’apertura automatica del browser.
-* `applicationUrl`: definisce l’URL di ascolto per l’applicazione (solo HTTP).
+* `applicationUrl`: definisce l’URL di ascolto per l’applicazione (HTTPS in entrambi gli ambienti).
 * `environmentVariables`: imposta `ASPNETCORE_ENVIRONMENT` su `Production`, configurando l’ambiente per la produzione.
 
 ---
@@ -115,7 +119,7 @@ In ambiente di sviluppo, quando avvii l’applicazione con il profilo `server-de
 dotnet run --project .\JokesApp.Server\JokesApp.Server.csproj --launch-profile "server-dev"
 ```
 
-Questo comando farà sì che l’app sia disponibile su entrambi i protocolli HTTP e HTTPS, utile per testare il comportamento in vari scenari.
+Questo comando farà sì che l’app sia disponibile su entrambi i protocolli **HTTPS** e **HTTP**, utile per testare il comportamento in vari scenari.
 
 ### 5.2 Produzione
 
@@ -125,7 +129,7 @@ Quando sei pronto per passare alla produzione, avvia l’app con il profilo `ser
 dotnet run --project .\JokesApp.Server\JokesApp.Server.csproj --launch-profile "server-prod"
 ```
 
-In questo caso, l’app sarà disponibile solo su HTTP, come si farebbe in un ambiente di produzione vero e proprio.
+In questo caso, l’app sarà disponibile su **HTTPS**, coerente con la configurazione di produzione, anche senza un reverse proxy.
 
 ---
 
@@ -143,7 +147,7 @@ La corretta configurazione di `launchSettings.json` consente di separare facilme
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": false,
-      "applicationUrl": "https://localhost:7215;http://localhost:5129",
+      "applicationUrl": "https://localhost:7215;https://localhost:5129",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy"
@@ -153,7 +157,7 @@ La corretta configurazione di `launchSettings.json` consente di separare facilme
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": false,
-      "applicationUrl": "http://localhost:5129",
+      "applicationUrl": "https://localhost:7215;https://localhost:5129",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Production"
       }
