@@ -75,7 +75,13 @@ A2a - launchSettings.json (profilo DEV/PROD configurato) ✅
       ├─ Profilo `server-dev` con configurazione DEV (HTTP/HTTPS, Debug/Logging, SPA proxy) ✅
       └─ Profilo `server-prod` con configurazione PROD (solo HTTP, senza SPA proxy) ✅
       
-A2b - Program.cs: finalizzazione e chiusura (per completamento) 🟡
+A2b - Program.cs: finalizzazione e chiusura (per completamento) ✅
+      ├─ Finalizzare `Program.cs` per concludere il blocco A2b. ✅
+      ├─ **Test degli endpoint**: 
+      │    ├─ **GET /health** (liveness: processo vivo) → Testato con PowerShell (`Invoke-RestMethod` per verificare risposta 200 OK). ✅
+      │    ├─ **GET /health/ready** (readiness DB: `SELECT 1` via Npgsql) → Testato con PowerShell (comando `Invoke-RestMethod` per confermare corretto stato del DB). ✅
+      │    └─ **GET /api/db/ping** → Testato in ambiente **Development** tramite PowerShell per confermare che restituisse `SELECT 1`. ✅
+      └─ **Nota**: A2b copre la finalizzazione di Program.cs, e i test degli endpoint sono stati eseguiti come parte di questa fase per verificare il funzionamento.
 
  > Nota: in A2 il file .env viene caricato solo in Development (local-first).
  > Nota: in ambienti NON-DEV la reachability DB è verificata tramite /health/ready (output minimale).

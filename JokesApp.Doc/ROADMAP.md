@@ -64,7 +64,7 @@ Documento di direzione per mantenere la doc “truth-first”. Riassume lo stato
     - `GET /health/ready` (readiness DB via Npgsql `SELECT 1`, senza EF)
     - `GET /api/db/ping` **solo Development** (diagnostica temporanea)
 
-- **A3 — CI baseline (GitHub Actions)**
+- ⬜ **A3 — CI baseline (GitHub Actions)**
   - Workflow minimo “quality gate” su `push` + `pull_request`:
     - `dotnet restore`
     - `dotnet build --no-restore`

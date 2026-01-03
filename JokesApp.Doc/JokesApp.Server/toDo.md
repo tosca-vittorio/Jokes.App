@@ -60,6 +60,9 @@ Possibili estensioni naturali del modello `Joke` (solo se emergono casi d’uso 
 
 **Obiettivo A2:** avvio applicazione + configurazione “environment-aware” + verifica minima DB PostgreSQL **senza EF/migrations**.
 
+> Nota: A2 serve a separare problemi di credenziali/config da problemi EF/mapping (07a).
+> Nota: in A2 è ammesso registrare `AddControllers/MapControllers`, ma **non** si introducono ancora Controllers “di prodotto” (Step 10).
+
 ### A2.1 — Config & startup ✅
 - ✅ `Program.cs`: caricamento `.env` **solo in Development** (local-first) + `builder.Configuration.AddEnvironmentVariables()`
 - ✅ Risoluzione connection string con priorità esplicita:
@@ -87,12 +90,14 @@ Possibili estensioni naturali del modello `Joke` (solo se emergono casi d’uso 
 - ✅ Profilo `server-dev` con configurazione DEV (HTTP/HTTPS, Debug/Logging, SPA proxy)
 - ✅ Profilo `server-prod` con configurazione PROD (solo HTTP, senza SPA proxy)
 
-### A2b — Program.cs: finalizzazione e chiusura 🟡
-- Finalizzare `Program.cs` per concludere il blocco A2b.
-- Verifica il file e assicurati che sia in linea con la configurazione completa.
+### A2b — Program.cs: finalizzazione e chiusura ✅
+- ✅ Finalizzare `Program.cs` per concludere il blocco A2b.
+- ✅ **Test degli endpoint**:
+  - ✅ **GET /health** (liveness: processo vivo) → Testato con PowerShell (`Invoke-RestMethod` per verificare risposta 200 OK). 
+  - ✅ **GET /health/ready** (readiness DB: `SELECT 1` via Npgsql) → Testato con PowerShell (comando `Invoke-RestMethod` per confermare corretto stato del DB).
+  - ✅ **GET /api/db/ping** → Testato in ambiente **Development** tramite PowerShell per confermare che restituisse `SELECT 1`.
 
-> Nota: A2 serve a separare problemi di credenziali/config da problemi EF/mapping (07a).
-> Nota: in A2 è ammesso registrare `AddControllers/MapControllers`, ma **non** si introducono ancora Controllers “di prodotto” (Step 10).
+> Nota: I test sugli endpoint sono stati eseguiti tramite PowerShell utilizzando il comando `Invoke-RestMethod` per verificare la risposta di ciascun endpoint. Questo ha confermato che gli endpoint di **liveness**, **readiness** e il ping DB funzionano come previsto.
 
 ---
 
