@@ -28,7 +28,6 @@
 # Local configs / secrets
 **/appsettings.Development.json
 **/appsettings.Local.json
-**/Properties/launchSettings.json
 
 # Local databases
 *.db
@@ -108,7 +107,8 @@ Desktop.ini
 *.swp
 *.swo
 *.tmp
-
+*.bak
+*.orig
 
 ################################################################################
 # Publish / artifacts
