@@ -53,23 +53,29 @@ A1 - Setup DB locale (PostgreSQL) ✅
       │ │ │
       ▼ ▼ ▼
 
-A2 - Bootstrap backend (config + connessione DB SENZA EF) 🟡
-      ├─ Program.cs: Caricamento `.env` (DotNetEnv) + env vars in IConfiguration (DEV-only .env) 🟡
-      ├─ Risoluzione connection string (priorità esplicita) 🟡
-      │    ├─ A) Env var: `ConnectionStrings__JokesDb` (preferita) 🟡
-      │    ├─ B) Fallback config: `ConnectionStrings:JokesDb` (placeholder non sensibile) 🟡
-      │    └─ C) Composizione da `DB_*` (Host/Port/Name/User/Password) 🟡
-      ├─ Fail-fast: se config DB manca/placeholder → errore chiaro in startup 🟡
-      ├─ Logging startup: tracciamento source connessione + mascheramento password 🟡
-      ├─ Servizi minimi: AddControllers/MapControllers possono essere registrati senza introdurre Controllers reali; in A2 si espongono solo endpoint tecnici (health/ping) via Minimal API. 🟡
-      ├─ Pipeline per ambienti (DEV vs NON-DEV) 🟡
-      │    ├─ DEV: OpenAPI (endpoint spec) solo Development 🟡
-      │    ├─ DEV: DeveloperExceptionPage 🟡
-      │    └─ NON-DEV: exception handling + security baseline (UseExceptionHandler, HSTS) 🟡
-      ├─ DEV: Preflight DB `GET /api/db/ping` (Npgsql, `SELECT 1`) 🟡
-      └─ Health endpoints (safe, anche fuori da Development) 🟡
-           ├─ `GET /health` (liveness: processo vivo) 🟡
-           └─ `GET /health/ready` (readiness DB: Npgsql `SELECT 1`, senza EF) 🟡
+A2 - Bootstrap backend (config + connessione DB SENZA EF) ✅
+      ├─ Program.cs: Caricamento `.env` (DotNetEnv) + env vars in IConfiguration (DEV-only .env) ✅
+      ├─ Risoluzione connection string (priorità esplicita) ✅
+      │    ├─ A) Env var: `ConnectionStrings__JokesDb` (preferita) ✅
+      │    ├─ B) Fallback config: `ConnectionStrings:JokesDb` (placeholder non sensibile) ✅
+      │    └─ C) Composizione da `DB_*` (Host/Port/Name/User/Password) ✅
+      ├─ Fail-fast: se config DB manca/placeholder → errore chiaro in startup ✅
+      ├─ Logging startup: tracciamento source connessione + mascheramento password ✅
+      ├─ Servizi minimi: AddControllers/MapControllers possono essere registrati senza introdurre Controllers reali; in A2 si espongono solo endpoint tecnici (health/ping) via Minimal API. ✅
+      ├─ Pipeline per ambienti (DEV vs NON-DEV) ✅
+      │    ├─ DEV: OpenAPI (endpoint spec) solo Development ✅
+      │    ├─ DEV: DeveloperExceptionPage ✅
+      │    └─ NON-DEV: exception handling + security baseline (UseExceptionHandler, HSTS) ✅
+      ├─ DEV: Preflight DB `GET /api/db/ping` (Npgsql, `SELECT 1`) ✅
+      └─ Health endpoints (safe, anche fuori da Development) ✅
+           ├─ `GET /health` (liveness: processo vivo) ✅
+           └─ `GET /health/ready` (readiness DB: Npgsql `SELECT 1`, senza EF) ✅
+
+A2a - launchSettings.json (profilo DEV/PROD configurato) ✅
+      ├─ Profilo `server-dev` con configurazione DEV (HTTP/HTTPS, Debug/Logging, SPA proxy) ✅
+      └─ Profilo `server-prod` con configurazione PROD (solo HTTP, senza SPA proxy) ✅
+      
+A2b - Program.cs: finalizzazione e chiusura (per completamento) 🟡
 
  > Nota: in A2 il file .env viene caricato solo in Development (local-first).
  > Nota: in ambienti NON-DEV la reachability DB è verificata tramite /health/ready (output minimale).
