@@ -56,33 +56,40 @@ Possibili estensioni naturali del modello `Joke` (solo se emergono casi d’uso 
 
 ---
 
-## A2) Bootstrap backend (config + connessione DB SENZA EF) 🟡
+## A2) Bootstrap backend (config + connessione DB SENZA EF) ✅
 
 **Obiettivo A2:** avvio applicazione + configurazione “environment-aware” + verifica minima DB PostgreSQL **senza EF/migrations**.
 
-### A2.1 — Config & startup 🟡
-- 🟡 `Program.cs`: caricamento `.env` **solo in Development** (local-first) + `builder.Configuration.AddEnvironmentVariables()`
-- 🟡 Risoluzione connection string con priorità esplicita:
-  - 🟡 A) env var `ConnectionStrings__JokesDb` (preferita)
-  - 🟡 B) fallback config `ConnectionStrings:JokesDb` (placeholder non sensibile)
-  - 🟡 C) composizione da `DB_*` (Host/Port/Name/User/Password)
-- ⬜ Fail-fast: se connection string manca o è placeholder → **errore chiaro in startup** (messaggio safe, senza segreti)  
-- 🟡 Logging startup: tracciamento “source” della connessione + **password sempre mascherata**
+### A2.1 — Config & startup ✅
+- ✅ `Program.cs`: caricamento `.env` **solo in Development** (local-first) + `builder.Configuration.AddEnvironmentVariables()`
+- ✅ Risoluzione connection string con priorità esplicita:
+  - ✅ A) env var `ConnectionStrings__JokesDb` (preferita)
+  - ✅ B) fallback config `ConnectionStrings:JokesDb` (placeholder non sensibile)
+  - ✅ C) composizione da `DB_*` (Host/Port/Name/User/Password)
+- ✅ Logging startup: tracciamento “source” della connessione + **password sempre mascherata**
 
-### A2.2 — Pipeline per ambienti (DEV vs NON-DEV) 🟡
-- 🟡 DEV:
-  - 🟡 OpenAPI disponibile solo in Development
-  - 🟡 DeveloperExceptionPage in Development
-- 🟡 NON-DEV:
-  - ⬜ `UseExceptionHandler()` (gestione errori “pulita”)
-  - ⬜ `UseHsts()` (security baseline)
+### A2.2 — Pipeline per ambienti (DEV vs NON-DEV) ✅
+- ✅ DEV:
+  - ✅ OpenAPI disponibile solo in Development
+  - ✅ DeveloperExceptionPage in Development
+- ✅ NON-DEV:
+  - ✅ `UseExceptionHandler()` (gestione errori “pulita”)
+  - ✅ `UseHsts()` (security baseline)
 
-### A2.3 — Endpoints tecnici (senza EF) 🟡
-- 🟡 Health endpoints (safe, anche fuori da Development):
-  - 🟡 `GET /health` (liveness: processo vivo)
-  - 🟡 `GET /health/ready` (readiness DB: `SELECT 1` con `Npgsql`, **senza EF**)
-- ⬜ Endpoint temporaneo (solo Development): `GET /api/db/ping` → `SELECT 1` con `Npgsql`
-- ⬜ Post-verifica: `/api/db/ping` non deve essere raggiungibile fuori da Development (non mappato / 404)
+### A2.3 — Endpoints tecnici (senza EF) ✅
+- ✅ Health endpoints (safe, anche fuori da Development):
+  - ✅ `GET /health` (liveness: processo vivo)
+  - ✅ `GET /health/ready` (readiness DB: `SELECT 1` con `Npgsql`, **senza EF**)
+- ✅ Endpoint temporaneo (solo Development): `GET /api/db/ping` → `SELECT 1` con `Npgsql`
+- ✅ Post-verifica: `/api/db/ping` non deve essere raggiungibile fuori da Development (non mappato / 404)
+
+### A2a — launchSettings.json (profilo DEV/PROD configurato) ✅
+- ✅ Profilo `server-dev` con configurazione DEV (HTTP/HTTPS, Debug/Logging, SPA proxy)
+- ✅ Profilo `server-prod` con configurazione PROD (solo HTTP, senza SPA proxy)
+
+### A2b — Program.cs: finalizzazione e chiusura 🟡
+- Finalizzare `Program.cs` per concludere il blocco A2b.
+- Verifica il file e assicurati che sia in linea con la configurazione completa.
 
 > Nota: A2 serve a separare problemi di credenziali/config da problemi EF/mapping (07a).
 > Nota: in A2 è ammesso registrare `AddControllers/MapControllers`, ma **non** si introducono ancora Controllers “di prodotto” (Step 10).
