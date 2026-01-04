@@ -81,22 +81,23 @@ Le proprietà principali sono:
 
 ```csharp
 public JokeId Id { get; private set; }
-public QuestionText Question { get; private set; }
-public AnswerText Answer { get; private set; }
+public QuestionText Question { get; private set; } = null!;
+public AnswerText Answer { get; private set; } = null!;
 public UserId ApplicationUserId { get; private set; }
 public ApplicationUser? Author { get; private set; }
 public DateTime CreatedAt { get; private set; }
 public DateTime? UpdatedAt { get; private set; }
 public int Likes { get; private set; }
 ```
+> `= null!` è usato esclusivamente per soddisfare il compilatore in presenza del costruttore richiesto da EF Core; il costruttore di dominio e la factory garantiscono sempre l’inizializzazione reale.
 
 Gli **invarianti** garantiti dal dominio sono:
 
 1. **Question e Answer sono sempre Value Object validi**
 
    - `Question` e `Answer` vengono passati come `QuestionText` e `AnswerText`.
-   - Le loro regole (non null, non vuoti, lunghezza massima, ecc.) sono già verificate
-     a monte dai rispettivi VO (vedi `04a_QuestionText.md` e `04a_AnswerText.md`).
+   - Le loro regole (non null, non vuoti, lunghezza massima, ecc.) sono già verificate a monte dai rispettivi VO (vedi `04a_QuestionText.md` e `04a_AnswerText.md`).
+   - L’entità replica le guardie (null/empty) per difesa, anche se i VO garantiscono validazione.
 
 2. **Question e Answer non possono essere identiche**
 
@@ -107,9 +108,7 @@ Gli **invarianti** garantiti dal dominio sono:
    {
        if (string.Equals(q.Value, a.Value, StringComparison.OrdinalIgnoreCase))
        {
-           throw new DomainValidationException(
-              JokeErrorMessages.QuestionAndAnswerCannotMatch,
-              nameof(Question));
+           throw new DomainValidationException(JokeErrorMessages.QuestionAndAnswerCannotMatch, "Question/Answer");
        }
    }
    ```
@@ -224,7 +223,7 @@ private Joke(QuestionText question, AnswerText answer, UserId userId)
   - richiede Value Object già validi (`QuestionText`, `AnswerText`, `UserId`);
   - applica la regola “question e answer sono diverse”;
   - inizializza `CreatedAt` in UTC;
-  - registra un evento `JokeWasCreated` con l’`Id` **reale** generato nel dominio tramite `JokeId.New()`, così da averlo disponibile subito (es. per Domain Events)..
+  - registra un evento `JokeWasCreated` con l’`Id` **reale** generato nel dominio tramite `JokeId.New()`, così da averlo disponibile subito (es. per Domain Events).
 
 Per i dettagli su `JokeWasCreated` e sugli altri eventi di dominio, si veda la documentazione
 del sottosistema eventi (`Domain/Events`).
@@ -249,6 +248,7 @@ public ApplicationUser? Author { get; private set; }
 
 public void SetAuthor(ApplicationUser author)
 {
+    EnsureIdIsInitialized();
     if (author is null)
     {
         throw new DomainValidationException(
@@ -261,7 +261,7 @@ public void SetAuthor(ApplicationUser author)
     {
         throw new DomainValidationException(
             ApplicationUserErrorMessages.UserIdNullOrEmpty,
-            nameof(author));
+            nameof(author.Id));
     }
 
     if (Author is not null)
@@ -274,7 +274,7 @@ public void SetAuthor(ApplicationUser author)
     {
         throw new DomainValidationException(
             JokeErrorMessages.AuthorIdMismatch,
-            nameof(author));
+            nameof(author.Id));
     }
 
     Author = author;
@@ -458,7 +458,39 @@ Pattern adottato:
 public void ValidateIntegrity()
 {
     EnsureIdIsInitialized();
+
+    // Controlla l'ApplicationUserId
+    if (ApplicationUserId.IsEmpty)
+    {
+        throw new DomainValidationException(
+            ApplicationUserErrorMessages.UserIdNullOrEmpty,
+            nameof(ApplicationUserId));
+    }
+
+    // Controlla domande e risposte non nulle e non vuote
+    if (Question is null || Question.IsEmpty)
+    {
+        throw new DomainValidationException(
+            JokeErrorMessages.QuestionNullOrEmpty,
+            nameof(Question));
+    }
+
+    if (Answer is null || Answer.IsEmpty)
+    {
+        throw new DomainValidationException(
+            JokeErrorMessages.AnswerNullOrEmpty,
+            nameof(Answer));
+    }
+
     EnsureQuestionAndAnswerAreDifferent(Question, Answer);
+
+    // Likes deve essere non negativo
+    if (Likes < 0)
+    {
+        throw new DomainValidationException(
+            JokeErrorMessages.MinimumLikeOfJokeReached,
+            nameof(Likes));
+    }
 }
 ```
 
@@ -469,7 +501,7 @@ public void ValidateIntegrity()
 - controlli diagnostici,
 
 per verificare che lo stato interno dell’entità continui a rispettare gli invarianti
-di dominio (in questo caso: `Id` inizializzato e `Question`/`Answer` non identiche).
+di dominio (in questo caso: `Id` inizializzato, `ApplicationUserId` valido, `Question`/`Answer` non null e non vuote, `Question`/`Answer` non identiche, `Likes` non negativo.).
 
 In futuro, se gli invarianti aumentano, è il posto naturale dove centralizzare
 i controlli ad alto livello.
