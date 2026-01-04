@@ -179,12 +179,10 @@ namespace JokesApp.Tests.Domain.Entities
             var act = () => Joke.Create(same, AnswerText.Create("same"), User);
 
             // Assert
-            // Qui MemberName è nameof(Joke.Question) (quindi legato alla proprietà del dominio).
-            // Usare nameof(...) rende il test più robusto ai refactor rispetto a stringhe hardcoded.
             act.Should()
                 .Throw<DomainValidationException>()
                 .WithMessage(JokeErrorMessages.QuestionAndAnswerCannotMatch)
-                .Which.MemberName.Should().Be(nameof(Joke.Question));
+                .Which.MemberName.Should().Be("Question/Answer");
         }
 
         #endregion
