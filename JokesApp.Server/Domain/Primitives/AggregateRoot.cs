@@ -44,7 +44,7 @@ namespace JokesApp.Server.Domain.Primitives
         /// Aggiunge un evento di dominio alla coda dell'aggregate.
         /// </summary>
         /// <param name="domainEvent">Evento di dominio da accodare.</param>
-        /// <exception cref="ArgumentNullException">Se <paramref name="domainEvent"/> è null.</exception>
+        /// <exception cref="ArgumentNullException">Se <paramref name="domainEvent"/> null.</exception>
         protected void AddDomainEvent(IDomainEvent domainEvent)
         {
             if (domainEvent is null)
