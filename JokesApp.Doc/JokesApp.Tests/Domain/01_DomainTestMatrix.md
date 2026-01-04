@@ -1,20 +1,23 @@
-# 📘 **01_DomainTestMatrix.md — Matrice dei test unitari per Value Object, Aggregate e AggregateRoot**
+# 📘 # JokesApp.Doc/JokesApp.Tests/Domain/**01_DomainTestMatrix.md — Matrice dei test unitari per Value Object, Aggregates, Domain Events e AggregateRoot**
 
-## *Copertura minima garantita per il dominio (`ValueObjects`, `Joke`, `ApplicationUser`, `AggregateRoot`)*
+## *Copertura minima garantita per il dominio (`ValueObjects`, `Joke`, `ApplicationUser`, `DomainEvents`, `AggregateRoot`)*
 
 ---
 
 ## 1️⃣ Scopo e riferimenti
 
-Questa matrice definisce **cosa testare** a livello di dominio puro, indicando per ogni componente:
+Questa matrice definisce **cosa testare** a livello di **dominio puro**, indicando per ogni componente:
 
 * categorie di verifica e casi limite;
 * messaggi d’errore e invarianti da controllare;
+* eventi di dominio generati e relativo payload minimo da validare;
 * file di test previsti in `JokesApp.Tests/Domain/...`;
 * documentazione di dettaglio già presente:
   * `JokesApp.Doc/JokesApp.Tests/Model/03_JokeTest.md`;
   * `JokesApp.Doc/JokesApp.Tests/Model/04_ApplicationUserTest.md`;
   * `JokesApp.Doc/JokesApp.Tests/Domain/Attributes/04_CustomEmailAttributeTest.md`.
+
+> Nota organizzativa: nella soluzione di test, la cartella `Domain/Entities/` contiene i test delle entità/aggregati del dominio (es. `Joke`, `ApplicationUser`). Il naming è **solo strutturale** e non modifica la semantica DDD (restano Aggregates/Aggregate Root).
 
 ---
 
@@ -32,16 +35,16 @@ Questa matrice definisce **cosa testare** a livello di dominio puro, indicando p
 
 ---
 
-## 3️⃣ Aggregates — `Joke` e `ApplicationUser`
+## 3️⃣ Aggregates — `Joke` e `ApplicationUser` (test in `JokesApp.Tests/Domain/Entities/`)
 
 ### 🟦 Joke (Aggregate Root)
 
 | Area                     | Casi da coprire                                                                                                                                                                                      | Note sui messaggi/eventi                                                                                                  |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Creazione (`Create`)     | Costruzione con VO validi → proprietà impostate, `Likes = 0`, `UpdatedAt = null`; generazione evento `JokeWasCreated` con `Id`, `ApplicationUserId`, `Question`, `Answer`, `CreatedAt`.               | Verifica `DomainEvents` contiene un solo evento e `PullDomainEvents()` lo svuota.                                         |
+| Creazione (`Create`)     | Costruzione con VO validi → proprietà impostate, `Likes = 0`, `UpdatedAt = null`; generazione evento `JokeWasCreated` con `JokeId`, `AuthorId`, `Question`, `Answer`, `CreatedAt`, `OccurredOn`.               | Verifica `DomainEvents` contiene un solo evento e `PullDomainEvents()` lo svuota.                                         |
 | Invarianti               | `QuestionText`/`AnswerText` null/empty → `QuestionNullOrEmpty` / `AnswerNullOrEmpty`; `UserId.IsEmpty` → `UserIdNullOrEmpty`; domanda = risposta (case-insensitive) → `QuestionAndAnswerCannotMatch`. | Usa `ValidateIntegrity()` per scenari già creati.                                                                         |
 | Aggiornamento (`Update`) | Aggiornamento con autore corretto → `Question`/`Answer` aggiornati, `UpdatedAt` valorizzato, evento `JokeWasUpdated`; mismatch `userId` → `UnauthorizedDomainOperationException` (`UpdateNotAllowed`).  | Controlla che gli eventi vengano accodati e poi svuotati via `PullDomainEvents()`.                                        |
-| Author management        | `SetAuthor` con `null` → `AuthorNull`; `author.Id` vuoto → `UserIdNullOrEmpty`; autore già presente → `AuthorAlreadySet`; `author.Id != ApplicationUserId` → `AuthorIdMismatch`; assegnazione valida.  | Dopo `SetAuthor` la proprietà `Author` è popolata e non cambia su `Update`.                                              |
+| Author management        | `SetAuthor` con `null` → `AuthorNull`; `author.Id` vuoto → `UserIdNullOrEmpty`; autore già presente → `AuthorAlreadySet`; `author.Id` diverso dall’id autore associato alla joke → `AuthorIdMismatch`; assegnazione valida.  | Dopo `SetAuthor` la proprietà `Author` è popolata e non cambia su `Update`.                                              |
 | Like / Unlike            | `AddLike` incrementa e genera `JokeWasLiked`; overflow `int.MaxValue` → `MaximumLikeOfJokeReached`; `RemoveLike` decrementa e genera `JokeWasUnliked`; se `Likes = 0` → `MinimumLikeOfJokeReached`.    | Testare accumulo di eventi multipli prima di `PullDomainEvents()`.                                                        |
 | Guardie su Id            | Metodi pubblici (`Update`, `SetAuthor`, `AddLike`, `RemoveLike`, `ValidateIntegrity`) su `Id.IsEmpty` → `JokeIdEmpty`.                                                                               | Coprire anche l’istanza tecnica costruita via costruttore EF (uso `JokeId.Empty`).                                        |
 
@@ -50,10 +53,10 @@ Questa matrice definisce **cosa testare** a livello di dominio puro, indicando p
 | Area                        | Casi da coprire                                                                                                                                                                           | Note                                                                                       |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | Creazione dominio           | Costruttore con VO validi → proprietà impostate, `Jokes` inizializzato, `UpdatedAt = null`; `CreatedAt` in UTC.                                                                          | Nessun Domain Event previsto.                                                              |
-| Invarianti in ingresso      | `UserId.Empty` → `UserIdNullOrEmpty`; `DisplayName.Empty` → `DisplayNameRequired`; `Email.Empty` → `EmailRequired`; `AvatarUrl.Empty` è ammesso.                                         | Usa messaggi da `ApplicationUserErrorMessages`.                                           |
-| `ValidateIntegrity()`       | Stato valido non lancia; `Id.Empty` / `DisplayName.Empty` / `Email.Empty` producono le rispettive `DomainValidationException`.                                                            | Utile per istanze reidratate o default.                                                    |
-| `UpdateProfile`             | Aggiornamento con `displayName` e `avatarUrl` validi → proprietà aggiornate, `UpdatedAt` valorizzato; email `null` mantiene valore precedente; email `Empty` → `EmailRequired`.            | Verifica che il trim/validazione resti delegato ai VO.                                     |
-| `ChangeEmail`               | Email valida aggiorna `Email` + `UpdatedAt`; `EmailAddress.Empty` → `EmailRequired`.                                                                                                      | Coprire timestamp monotonicamente crescente rispetto a `CreatedAt`.                        |
+| Invarianti in ingresso      | `UserId.Empty` → `UserIdNullOrEmpty`; `DisplayName.Empty` → `DisplayNameRequired`; `EmailAddress.Empty` → `EmailRequired`; `AvatarUrl.Empty` è ammesso.                                         | Usa messaggi da `ApplicationUserErrorMessages`.                                           |
+| `ValidateIntegrity()`       | Stato valido non lancia; `Id.Empty` / `DisplayName.Empty` / `EmailAddress.Empty` producono le rispettive `DomainValidationException`.                                                            | Utile per istanze reidratate o default.                                                    |
+| `UpdateProfile`             | Aggiornamento con `displayName` e `avatarUrl` validi → proprietà aggiornate, `UpdatedAt` valorizzato; email `null` mantiene valore precedente; email `EmailAddress.Empty` → `EmailRequired`.            | Verifica che il trim/validazione resti delegato ai VO.                                     |
+| `ChangeEmail`               | Email valida aggiorna `EmailAddress` + `UpdatedAt`; `EmailAddress.Empty` → `EmailRequired`.                                                                                                      | Coprire timestamp monotonicamente crescente rispetto a `CreatedAt`.                        |
 | `SetAvatar`                 | Aggiornamento con `AvatarUrl` valido (anche `Empty`) → proprietà aggiornata, `UpdatedAt` impostato.                                                                                       | Controlla che `UpdatedAt` cambi rispetto al precedente valore.                             |
 | Collezione `Jokes`          | Inizializzazione vuota; aggiunta/rimozione di `Joke` mantiene consistenza; collezioni di utenti diversi sono indipendenti.                                                                | Per ora test puri di dominio (senza EF).                                                   |
 
@@ -70,26 +73,44 @@ Questa matrice definisce **cosa testare** a livello di dominio puro, indicando p
 
 ---
 
-## 5️⃣ Struttura file di test consigliata (`JokesApp.Tests`)
+## 5️⃣ Domain Events — eventi di dominio
+
+| Evento di dominio     | Scopo del test                                                                                                    | File di test previsto                          |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------- |
+| `JokeWasCreated`      | Validazione input e proprietà assegnate (JokeId, AuthorId, Question, Answer, CreatedAt, OccurredOn).               | `Domain/Events/JokeWasCreatedTests.cs`         |
+| `JokeWasUpdated`      | Validazione input e proprietà assegnate (JokeId, Question, Answer, UpdatedAt, OccurredOn).                         | `Domain/Events/JokeWasUpdatedTests.cs`         |
+| `JokeWasLiked`        | Validazione input e proprietà assegnate (JokeId, Likes, OccurredOn).                                                | `Domain/Events/JokeWasLikedTests.cs`           |
+| `JokeWasUnliked`      | Validazione input e proprietà assegnate (JokeId, Likes, OccurredOn).                                                | `Domain/Events/JokeWasUnlikedTests.cs`         |
+
+---
+
+## 6️⃣ Struttura file di test aggiornata (`JokesApp.Tests`)
 
 ```
 JokesApp.Tests/
- └─ Domain/
-     ├─ ValueObjects/
-     │   ├─ QuestionTextTests.cs
-     │   ├─ AnswerTextTests.cs
-     │   ├─ DisplayNameTests.cs
-     │   ├─ AvatarUrlTests.cs
-     │   ├─ EmailAddressTests.cs
-     │   ├─ UserIdTests.cs
-     │   └─ JokeIdTests.cs
-     ├─ Aggregates/
-     │   ├─ JokeTests.cs          (focalizzato su eventi, invarianti, like/update)
-     │   └─ ApplicationUserTests.cs
-     └─ Primitives/
-         └─ AggregateRootTests.cs (fake aggregate per pull/clear eventi)
+ ├─ Domain/
+ │   ├─ ValueObjects/
+ │   │   ├─ QuestionTextTests.cs
+ │   │   ├─ AnswerTextTests.cs
+ │   │   ├─ DisplayNameTests.cs
+ │   │   ├─ AvatarUrlTests.cs
+ │   │   ├─ EmailAddressTests.cs
+ │   │   ├─ UserIdTests.cs
+ │   │   └─ JokeIdTests.cs
+ │   ├─ Entities/
+ │   │   ├─ JokeTests.cs          (focalizzato su eventi, invarianti, like/update)
+ │   │   └─ ApplicationUserTests.cs
+ │   ├─ Events/
+ │   │   ├─ JokeWasCreatedTests.cs
+ │   │   ├─ JokeWasUpdatedTests.cs
+ │   │   ├─ JokeWasLikedTests.cs
+ │   │   └─ JokeWasUnlikedTests.cs
+ │   └─ Primitives/
+ │       └─ AggregateRootTests.cs (fake aggregate per pull/clear eventi)
+ ├─ ExampleTests1.cs              (smoke/learning — test rapidi iniziali)
+ └─ ExampleTests2.cs              (smoke/learning — test rapidi iniziali)
 ```
 
-*La matrice è allineata con le convenzioni esistenti: test granulari, naming AAA, uso di `FluentAssertions` per le asserzioni semantiche e controllo esplicito dei messaggi di dominio.*
+*La matrice è allineata con le convenzioni esistenti: test granulari, naming AAA, uso di `FluentAssertions` per asserzioni semantiche, e verifica esplicita di invarianti/messaggi di dominio. La struttura test riflette le cartelle `Domain/ValueObjects`, `Domain/Entities`, `Domain/Events` e `Domain/Primitives`.*
 
 ---
