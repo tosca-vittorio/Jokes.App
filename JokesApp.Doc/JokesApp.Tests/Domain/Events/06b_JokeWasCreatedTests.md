@@ -1,4 +1,4 @@
-# 📘 06b_JokeWasCreatedTests — Manuale didattico per `JokeWasCreated`
+# 📘 JokesApp.Doc/JokesApp.Tests/Domain/Events/06b_JokeWasCreatedTests.md — Manuale didattico per `JokeWasCreated`
 
 > **File di test:** `JokesApp.Tests/Domain/Events/JokeWasCreatedTests.cs`  
 > **Classe di test:** `JokesApp.Tests.Domain.Events.JokeWasCreatedTests`  
