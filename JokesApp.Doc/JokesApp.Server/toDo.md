@@ -19,7 +19,7 @@ Documentazione centralizzata delle attività concluse, in corso o da implementar
 | Area | Stato | Note |
 |---|---|---|
 | A1 Setup DB locale (PostgreSQL) | ✅ | DB/ruolo/permessi + `.env` + `appsettings.json` fallback verificati |
-| A2 Bootstrap (senza EF) | 🟡 | `Program.cs` env/config + fail-fast + logging safe + health; ping DB solo DEV |
+| A2 Bootstrap (senza EF) | ✅ | `Program.cs` env/config + fail-fast + logging safe + health; ping DB solo DEV |
 | A3 CI baseline (GitHub Actions) | ⬜ | restore/build/test su push + PR (quality gate minimo) |
 | B EF Core preflight | ⬜ | tooling/provider ok prima di introdurre DbContext/migrations |
 | Domain Layer (01–06) | ✅ | VO/Entities/Events/Exceptions allineati e documentati |
