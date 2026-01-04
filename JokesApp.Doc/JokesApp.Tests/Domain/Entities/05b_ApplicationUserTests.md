@@ -1,364 +1,330 @@
-# 📘 **04_ApplicationUserTest.md — Documentazione Tecnica Completa della Suite di Test per ApplicationUser**
+# 📘 05b_ApplicationUserTests — Manuale didattico completo dei test per `ApplicationUser`
 
-## *Validazione del dominio utente, delle invarianti e dei comportamenti integrati con IdentityUser*
-
----
-
-# 1️⃣ Introduzione generale
-
-`ApplicationUser` rappresenta l’entità utente nel backend di **JokesApp**, estendendo `IdentityUser` per aggiungere:
-
-* proprietà di dominio (`DisplayName`, `AvatarUrl`, `CreatedAt`, `UpdatedAt`, `Jokes`)
-* validazioni personalizzate (`CustomEmailAttribute`)
-* gestione coerente degli aggiornamenti profilo
-* supporto per timestamp in formato UTC
-* compatibilità con le logiche di ASP.NET Core Identity
-
-Il suo comportamento è più complesso rispetto a una semplice entità EF Core, poiché deve rispettare **invarianti di dominio**, **vincoli strutturali**, **logiche di normalizzazione**, **regole di sicurezza**, e **compatibilità con Identity**.
-
-La suite di test `ApplicationUserTests.cs` ha lo scopo di:
-
-* verificare stabilità e corretto funzionamento del modello,
-* garantire che ogni proprietà rispetti le regole del dominio,
-* evitare regressioni future durante l’evoluzione dell’applicazione,
-* documentare formalmente l’allineamento tra modello e comportamento desiderato.
+> **File di test:** `JokesApp.Tests/Domain/Entities/ApplicationUserTests.cs`  
+> **Classe di test:** `JokesApp.Tests.Domain.Entities.ApplicationUserTests`  
+> **Soggetto:** Entità di dominio `ApplicationUser` (Domain Layer)
 
 ---
 
-# 2️⃣ Obiettivi specifici della suite di test
+## 1️⃣ Scopo della suite
 
-Gli unit test validano accuratamente:
+Questa suite verifica il comportamento dell’entità di dominio `ApplicationUser` secondo un approccio coerente con DDD e Clean Architecture: creazione valida, mutazioni controllate e protezione da stati inconsistenti.
 
-### ✔ **1. Inizializzazione del modello**
-
-* valori di default previsti dal dominio
-  (`DisplayName = ""`, `AvatarUrl = null`, `CreatedAt = UTC`)
-
-### ✔ **2. Validazioni DataAnnotations**
-
-* `[MaxLength(50)]` per DisplayName
-* `[MaxLength(2048)]` per AvatarUrl
-* validazione URL tramite attributo `[Url]`
-
-### ✔ **3. Timestamp coerenti**
-
-* CreatedAt sempre in UTC
-* UpdatedAt gestito automaticamente al cambiamento delle proprietà
-* Update successivi generano timestamp successivi
-
-### ✔ **4. Gestione della collezione Jokes**
-
-* lista `Jokes` inizializzata correttamente
-* aggiunta e rimozione di entità Joke
-* indipendenza tra collezioni di utenti diversi
-* ordinamento delle barzellette secondo il CreatedAt
-
-### ✔ **5. Validazione completa dell’email**
-
-Utilizzando il validatore custom:
-
-* formati validi
-* formati invalidi
-* lunghezze eccessive
-* Unicode non ammessi
-* spazi interni non ammessi
-* limiti sul massimo di 256 caratteri
-
-### ✔ **6. Compatibilità con Identity**
-
-* validazione delle proprietà ereditate
-* corretta gestione di Username, PasswordHash, PhoneNumber, SecurityStamp, LockoutEnd
-* serializzazione JSON e sicurezza delle proprietà sensibili
-
-### ✔ **7. Comportamenti edge-case**
-
-* Unicode nelle proprietà
-* corretto funzionamento anche senza proprietà opzionali
-* serializzazione/deserializzazione consistente
+**Macro-obiettivi della suite:**
+- garantire invarianti di creazione (Id, DisplayName, Email);
+- verificare che le mutazioni (`UpdateProfile`, `ChangeEmail`, `SetAvatar`) producano uno stato coerente;
+- verificare la gestione dei timestamp (`CreatedAt` UTC, `UpdatedAt` dopo le modifiche);
+- verificare la “rete di sicurezza” `ValidateIntegrity` contro stati corrotti (forzati via reflection).
 
 ---
 
-# 3️⃣ Architettura della suite di test
+## 2️⃣ Strumenti e pattern ricorrenti
 
-🔎 La suite è progettata con tre principi:
+### ✅ xUnit
+- **`[Fact]`**: test singolo, non parametrico.
 
-### **A) Isolamento completo**
+### ✅ FluentAssertions
+- **`.Should().Be(...)`**: confronto diretto.
+- **`.Should().BeNull()` / `.Should().NotBeNull()`**: verifica nullability.
+- **`.Throw<DomainValidationException>()`**: vincola il tipo di eccezione.
+- **`.WithMessage(...)`**: vincola il messaggio (centralizzato).
+- **`.Which.MemberName`**: vincola il parametro/membro responsabile dell’errore.
 
-Nessuna dipendenza da database, EF Core o contesto Identity → **unit test puri**.
-
-### **B) AAA Pattern rigoroso**
-
-Ogni test segue la struttura:
-
-```
-Arrange → Act → Assert
+### ✅ Lambda “act”
+Nei test che verificano eccezioni, l’azione viene incapsulata in una lambda:
+```csharp
+var act = () => /* operazione che deve lanciare */;
 ```
 
-Per garantire:
+Questo consente a FluentAssertions di intercettare l’eccezione in modo deterministico.
 
-* chiarezza
-* manutenibilità
-* qualità del codice di test
+### ✅ Reflection (solo per test di integrità)
 
-### **C) Utilizzo esteso di FluentAssertions**
-
-Per verifiche espressive:
-
-* comparazioni su stringhe
-* timestamp
-* eccezioni con nome parametro
-* collezioni
+La reflection è usata esclusivamente per forzare stati invalidi e verificare che `ValidateIntegrity` intercetti corruzioni dello stato che l’API pubblica normalmente impedirebbe.
 
 ---
 
-# 4️⃣ Evoluzione storica dello sviluppo test
+## 3️⃣ Test del costruttore
 
-### 🟦 **Fase 1 — Test di base**
+### 🧪 Test: `Constructor_ShouldSetProperties_WhenValuesAreValid`
 
-I primi test validavano:
+**Scopo:** verificare che il costruttore assegni correttamente le proprietà e imposti i timestamp iniziali.
 
-* valori di default
-* inizializzazione
-* corretto funzionamento della collezione Jokes
+**Sintassi (estratto):**
 
-### 🟦 **Fase 2 — Introduzione validazioni avanzate**
+```csharp
+var id = UserId.Create("user-1");
+var name = DisplayName.Create("Ada");
+var email = EmailAddress.Create("ada@example.com");
+var avatar = AvatarUrl.Create("https://example.com/avatar.png");
 
-Con la stabilizzazione del dominio:
+var user = new ApplicationUser(id, name, email, avatar);
 
-* test max length
-* test URL
-* test email con validatore custom
-* unicode non ammessi
+user.Id.Should().Be(id);
+user.DisplayName.Should().Be(name);
+user.Email.Should().Be(email);
+user.AvatarUrl.Should().Be(avatar);
 
-### 🟦 **Fase 3 — Integrazione con regole Identity**
-
-Aggiunzione test per:
-
-* Username
-* PasswordHash
-* PhoneNumber
-* SecurityStamp
-* LockoutEnd
-
-### 🟦 **Fase 4 — Sicurezza & Serializzazione**
-
-Validazione che:
-
-* PasswordHash NON venga serializzata
-* SecurityStamp NON venga serializzata
-* Email sì
-
----
-
-# 5️⃣ Analisi dettagliata delle categorie di test
-
----
-
-## 🔷 A. Test su DisplayName
-
-### 1. Superamento limite massimo
-
-Se supera `50` caratteri → validazione fallisce
-Il test verifica:
-
-* presenza del messaggio `DisplayNameMaxLength`
-* unicità del messaggio
-
-### 2. Trimming automatico
-
-Se impostato con spazi:
-
-```
-"   Mario Rossi   " → "Mario Rossi"
+user.CreatedAt.Kind.Should().Be(DateTimeKind.Utc);
+user.UpdatedAt.Should().BeNull();
 ```
 
-### 3. Valori validi
+**Aspettativa di dominio:**
 
-Una stringa vuota è considerata valida, e rimane invariata.
-
----
-
-## 🔷 B. Test su AvatarUrl
-
-### 1. MaxLength 2048
-
-URL più lunghi → invalidi
-
-### 2. Null accettato
-
-Proprietà opzionale.
-
-### 3. Scheme validi
-
-Accettati:
-
-* http://
-* https://
-
-### 4. Validazione tramite attributo `[Url]`
-
-Testata con Validator.TryValidateObject.
+* creazione valida ⇒ stato coerente;
+* `CreatedAt` deve essere in UTC;
+* `UpdatedAt` deve restare nullo (nessuna modifica post-creazione).
 
 ---
 
-## 🔷 C. Test sui Timestamp
+### 🧪 Test: `Constructor_ShouldThrow_WhenIdIsEmpty`
 
-### ✔ CreatedAt
+**Scopo:** impedire creazione con `UserId.Empty`.
 
-Sempre in UTC → Kind = Utc
+**Sintassi (estratto):**
 
-### ✔ UpdatedAt
+```csharp
+var act = () => new ApplicationUser(
+    UserId.Empty,
+    DisplayName.Create("A"),
+    EmailAddress.Create("a@example.com"),
+    AvatarUrl.Empty);
 
-* null all’inizio
-* aggiornato quando il profilo cambia
-* timestamp cresce monotonicamente
-
-I test includono:
-
-* controllo dopo un breve delay
-* comparazione sequenziale
-
----
-
-## 🔷 D. Test sulla collezione Jokes
-
-La collezione `ICollection<Joke>` è:
-
-* inizializzata automaticamente
-* indipendente per ogni istanza `ApplicationUser`
-
-Verifiche effettuate:
-
-* aggiunta e rimozione
-* lista vuota
-* gestione multipla
-* ordine cronologico tramite CreatedAt
-
----
-
-## 🔷 E. Test sull’Email
-
-Questa è la sezione più ricca.
-
-Validazioni include:
-
-### ✔ Formati validi
-
-* [user@example.com](mailto:user@example.com)
-* [first.last@domain.co](mailto:first.last@domain.co)
-* [user+tag@domain.io](mailto:user+tag@domain.io)
-
-### ✔ Email lunga ma valida
-
-Esempio verificato con local-part di 200 caratteri.
-
-### ✔ Email vuota
-
-→ Deve generare `EmailRequired`
-
-### ✔ Formati invalidi
-
-* "not-an-email"
-* doppia "@@"
-* dominio mancante
-
-### ✔ Lunghezza massima 256
-
-Test specifico: Email con lunghezza esatta = valida
-Oltre 256 = invalidata
-
-### ✔ Unicode non ammessi
-
-Test della regex custom con esempi:
-
-* caratteri accentati
-* ideogrammi
-* TLD Unicode
-
----
-
-## 🔷 F. Test su UserName e compatibilità Identity
-
-Verifiche:
-
-* formati accettati da Identity
-* validazione corretta con Required email
-* nessun errore sulle proprietà personalizzate
-
----
-
-## 🔷 G. Test inizializzazione IdentityUser
-
-Verifica che:
-
-* DisplayName = ""
-* AvatarUrl = null
-* Jokes = lista vuota
-* CreatedAt = UTC vicino a DateTime.UtcNow
-
----
-
-## 🔷 H. Test JSON / Sicurezza
-
-Test estremamente importante per sicurezza:
-
-### ✔ PasswordHash e SecurityStamp **non devono apparire nel JSON**
-
-### ✔ Email sì
-
-### ✔ Serializzazione e deserializzazione coerenti
-
-Questo garantisce sicurezza della risposta API.
-
----
-
-# 6️⃣ Diagramma logico della gestione UpdatedAt
-
-```
-          ┌──────────────────────────────┐
-          │   ApplicationUser.Property   │
-          │         is changed           │
-          └──────────────────────────────┘
-                        │
-                        ▼
-           Is new value different from old?
-                        │
-                ┌───────┴────────┐
-                │                │
-              NO                YES
-                │                │
-        (No update)       UpdatedAt = UtcNow
+act.Should()
+   .Throw<DomainValidationException>()
+   .WithMessage(ApplicationUserErrorMessages.UserIdNullOrEmpty)
+   .Which.MemberName.Should().Be("id");
 ```
 
-Questo meccanismo è testato più volte nella suite.
+**Dettaglio importante:** `MemberName` atteso è `"id"` perché l’errore è associato al parametro del costruttore.
 
 ---
 
-# 7️⃣ Best Practices adottate
+### 🧪 Test: `Constructor_ShouldThrow_WhenDisplayNameIsEmpty`
 
-La suite segue ottime pratiche:
+**Scopo:** imporre il vincolo “DisplayName richiesto”.
 
-* isolamento totale del dominio
-* test granulari e mirati
-* FluentAssertions estensivo
-* gestione accurata dei timestamp
-* uso di DataAnnotations.Validator
-* pattern AAA rigoroso
-* test negativi completi (messaggio + tipo + contesto)
-* coerenza con IdentityUser
+**Sintassi (estratto):**
+
+```csharp
+var act = () => new ApplicationUser(
+    UserId.Create("user"),
+    DisplayName.Empty,
+    EmailAddress.Create("a@example.com"),
+    AvatarUrl.Empty);
+
+act.Should()
+   .Throw<DomainValidationException>()
+   .WithMessage(ApplicationUserErrorMessages.DisplayNameRequired)
+   .Which.MemberName.Should().Be("displayName");
+```
 
 ---
 
-# 8️⃣ Conclusione
+### 🧪 Test: `Constructor_ShouldThrow_WhenEmailIsEmpty`
 
-I test di `ApplicationUser`:
+**Scopo:** imporre il vincolo “Email richiesta”.
 
-* coprono **tutto il dominio**, dagli invarianti ai dettagli di serializzazione
-* garantiscono la **piena coerenza con la documentazione utente** (`04_ApplicationUser.md`)
-* verificano la corretta integrazione con Identity
-* proteggono il progetto da regressioni future
-* rappresentano un'ottima base per sviluppi avanzati (roles, claims, security)
+**Sintassi (estratto):**
 
-La suite è completa, ben strutturata, profondamente aderente al dominio e pronta per una crescita futura dell’applicazione.
+```csharp
+var act = () => new ApplicationUser(
+    UserId.Create("user"),
+    DisplayName.Create("A"),
+    EmailAddress.Empty,
+    AvatarUrl.Empty);
+
+act.Should()
+   .Throw<DomainValidationException>()
+   .WithMessage(ApplicationUserErrorMessages.EmailRequired)
+   .Which.MemberName.Should().Be("email");
+```
+
+---
+
+## 4️⃣ Test `UpdateProfile`
+
+`UpdateProfile` rappresenta una mutazione controllata del profilo. Nei test, il metodo viene usato in due modalità:
+
+* con **tre parametri** (nome, avatar, email) quando si intende aggiornare anche l’email;
+* con **due parametri** (nome, avatar) quando l’email non è coinvolta.
+
+### 🧪 Test: `UpdateProfile_ShouldUpdateFieldsAndTimestamp`
+
+**Scopo:** aggiornare nome/avatar/email e valorizzare `UpdatedAt`.
+
+**Sintassi (estratto):**
+
+```csharp
+var user = new ApplicationUser(
+    UserId.Create("user-1"),
+    DisplayName.Create("Ada"),
+    EmailAddress.Create("ada@example.com"),
+    AvatarUrl.Empty);
+
+var newName = DisplayName.Create("Ada Lovelace");
+var newAvatar = AvatarUrl.Create("https://example.com/new.png");
+var newEmail = EmailAddress.Create("ada.lovelace@example.com");
+
+user.UpdateProfile(newName, newAvatar, newEmail);
+
+user.DisplayName.Should().Be(newName);
+user.AvatarUrl.Should().Be(newAvatar);
+user.Email.Should().Be(newEmail);
+user.UpdatedAt.Should().NotBeNull();
+```
+
+**Aspettativa di dominio:** una mutazione valida deve lasciare lo stato coerente e impostare `UpdatedAt`.
+
+---
+
+### 🧪 Test: `UpdateProfile_ShouldThrow_WhenDisplayNameIsEmpty`
+
+**Scopo:** impedire update con `DisplayName.Empty`.
+
+**Sintassi (estratto):**
+
+```csharp
+var act = () => user.UpdateProfile(DisplayName.Empty, AvatarUrl.Empty);
+
+act.Should()
+   .Throw<DomainValidationException>()
+   .WithMessage(ApplicationUserErrorMessages.DisplayNameRequired)
+   .Which.MemberName.Should().Be("displayName");
+```
+
+---
+
+### 🧪 Test: `UpdateProfile_ShouldThrow_WhenEmailIsProvidedAndEmpty`
+
+**Scopo:** se il chiamante “fornisce” l’email nell’update, il valore non può essere vuoto.
+
+**Sintassi (estratto):**
+
+```csharp
+var act = () => user.UpdateProfile(
+    DisplayName.Create("New"),
+    AvatarUrl.Empty,
+    EmailAddress.Empty);
+
+act.Should()
+   .Throw<DomainValidationException>()
+   .WithMessage(ApplicationUserErrorMessages.EmailRequired)
+   .Which.MemberName.Should().Be("email");
+```
+
+**Aspettativa di dominio:** email esplicitamente passata ⇒ deve essere valida (non vuota).
+
+---
+
+## 5️⃣ Test `ChangeEmail`
+
+### 🧪 Test: `ChangeEmail_ShouldUpdateEmailAndTimestamp`
+
+**Scopo:** aggiornare l’email e impostare `UpdatedAt`.
+
+**Sintassi (estratto):**
+
+```csharp
+var newEmail = EmailAddress.Create("ada@new.com");
+
+user.ChangeEmail(newEmail);
+
+user.Email.Should().Be(newEmail);
+user.UpdatedAt.Should().NotBeNull();
+```
+
+---
+
+### 🧪 Test: `ChangeEmail_ShouldThrow_WhenEmailIsEmpty`
+
+**Scopo:** impedire cambio email con `EmailAddress.Empty`.
+
+**Sintassi (estratto):**
+
+```csharp
+var act = () => user.ChangeEmail(EmailAddress.Empty);
+
+act.Should()
+   .Throw<DomainValidationException>()
+   .WithMessage(ApplicationUserErrorMessages.EmailRequired)
+   .Which.MemberName.Should().Be("newEmail");
+```
+
+**Nota critica:** qui `MemberName` è `"newEmail"` perché l’errore si riferisce al **parametro del metodo** `ChangeEmail`, non alla proprietà `Email`.
+
+---
+
+## 6️⃣ Test `SetAvatar`
+
+### 🧪 Test: `SetAvatar_ShouldUpdateAvatarAndTimestamp`
+
+**Scopo:** aggiornare l’avatar e impostare `UpdatedAt`.
+
+**Sintassi (estratto):**
+
+```csharp
+var newAvatar = AvatarUrl.Create("https://example.com/avatar.png");
+
+user.SetAvatar(newAvatar);
+
+user.AvatarUrl.Should().Be(newAvatar);
+user.UpdatedAt.Should().NotBeNull();
+```
+
+---
+
+## 7️⃣ Test `ValidateIntegrity`
+
+`ValidateIntegrity` è una rete di sicurezza: deve intercettare stati internamente invalidi (es. derivanti da mapping errati, materializzazione corrotta, bug) anche quando tali stati non sono ottenibili tramite l’API pubblica.
+
+### 🧪 Test: `ValidateIntegrity_ShouldThrow_WhenStateIsInvalid`
+
+**Scopo:** forzare uno stato invalido e verificare che `ValidateIntegrity` fallisca in modo deterministico.
+
+**Sintassi (estratto):**
+
+```csharp
+SetPrivateProperty(user, nameof(ApplicationUser.Id), UserId.Empty);
+
+var act = () => user.ValidateIntegrity();
+
+act.Should()
+   .Throw<DomainValidationException>()
+   .WithMessage(ApplicationUserErrorMessages.UserIdNullOrEmpty)
+   .Which.MemberName.Should().Be(nameof(ApplicationUser.Id));
+```
+
+**Nota:** qui `MemberName` è `nameof(ApplicationUser.Id)` (non una stringa hardcoded), quindi più robusto rispetto a refactor.
+
+---
+
+## 8️⃣ Helper Reflection (supporto ai test)
+
+### 🧪 Helper: `SetPrivateProperty<T>`
+
+**Scopo:** impostare proprietà (anche non pubbliche) tramite Reflection per simulare stati impossibili.
+
+**Sintassi (estratto):**
+
+```csharp
+var property = typeof(ApplicationUser)
+    .GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!;
+
+property.SetValue(target, value);
+```
+
+**Nota tecnica:** l’operatore `!` (null-forgiving) è una scelta consapevole nei test: se il nome proprietà cambia, il test può fallire a runtime, rendendo evidente la rottura del contratto interno.
+
+---
+
+## 9️⃣ Conclusione
+
+La suite `ApplicationUserTests` verifica in modo completo e deterministico:
+
+* invarianti di creazione (`Id`, `DisplayName`, `Email`);
+* regole di update (`UpdateProfile`, `ChangeEmail`, `SetAvatar`);
+* correttezza dei timestamp (`CreatedAt` UTC, `UpdatedAt` post-mutazione);
+* resilienza tramite `ValidateIntegrity` contro stati corrotti.
 
 ---
