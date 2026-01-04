@@ -27,12 +27,12 @@ namespace JokesApp.Server.Domain.Entities
         /// <summary>
         /// Testo della domanda, rappresentato tramite un Value Object che garantisce lunghezza e validità.
         /// </summary>
-        public QuestionText Question { get; private set; }
+        public QuestionText Question { get; private set; } = null!;
 
         /// <summary>
         /// Testo della risposta, rappresentato tramite un Value Object che garantisce lunghezza e validità.
         /// </summary>
-        public AnswerText Answer { get; private set; }
+        public AnswerText Answer { get; private set; } = null!;
 
         /// <summary>
         /// Identificatore tipizzato dell'autore della barzelletta.
@@ -288,7 +288,7 @@ namespace JokesApp.Server.Domain.Entities
             {
                 throw new DomainValidationException(
                     JokeErrorMessages.QuestionAndAnswerCannotMatch,
-                    nameof(Question));
+                    "Question/Answer");
             }
         }
 
@@ -313,7 +313,34 @@ namespace JokesApp.Server.Domain.Entities
         public void ValidateIntegrity()
         {
             EnsureIdIsInitialized();
+            // Controlla l'ApplicationUserId
+            if (ApplicationUserId.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    ApplicationUserErrorMessages.UserIdNullOrEmpty,
+                    nameof(ApplicationUserId));
+            }
+            // Controlla domande e risposte non nulle e non vuote
+            if (Question is null || Question.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    JokeErrorMessages.QuestionNullOrEmpty,
+                    nameof(Question));
+            }
+            if (Answer is null || Answer.IsEmpty)
+            {
+                throw new DomainValidationException(
+                    JokeErrorMessages.AnswerNullOrEmpty,
+                    nameof(Answer));
+            }
             EnsureQuestionAndAnswerAreDifferent(Question, Answer);
+            // Likes deve essere non negativo
+            if (Likes < 0)
+            {
+                throw new DomainValidationException(
+                    JokeErrorMessages.MinimumLikeOfJokeReached,
+                    nameof(Likes));
+            }
         }
 
         #endregion
