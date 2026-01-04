@@ -8,7 +8,7 @@ Documento di direzione per mantenere la doc “truth-first”. Riassume lo stato
 
 - **Backend — Bootstrap (A1→A3)**
   - **A1** completato: PostgreSQL locale + ruolo/permessi + `.env` gitignored + `appsettings.json` placeholder non sensibile.
-  - **A2** in corso: `Program.cs` in stabilizzazione per bootstrap **senza EF** (config environment-aware, fail-fast safe, logging safe, health + readiness DB, ping DB DEV-only).
+  - **A2** completato: bootstrap backend senza EF chiuso (config, fail‑fast, logging safe, health + ping DB).
   - **A3** non presente: nessun workflow GitHub Actions in `.github/workflows/`.
 
 - **Backend — Domain**
@@ -46,23 +46,7 @@ Documento di direzione per mantenere la doc “truth-first”. Riassume lo stato
 
 ## 2) Milestone vicine (0–1)
 
-### 🟡 Step 0 — Bootstrap & Quality Gate (A1 → A3)
-
-- **A2 — Bootstrap backend senza EF (priorità massima)**
-  - `.env` **solo Development** (local-first) + `AddEnvironmentVariables()` su configuration.
-  - Risoluzione connection string con priorità esplicita:
-    - A) `ConnectionStrings__JokesDb` (env var, preferita)
-    - B) `ConnectionStrings:JokesDb` (fallback placeholder non sensibile)
-    - C) composizione da `DB_*`
-  - **Fail-fast** se mancano config/placeholder (messaggio safe, senza segreti).
-  - **Logging startup safe**: source connessione + password sempre mascherata.
-  - Pipeline DEV vs NON-DEV:
-    - DEV: OpenAPI + DeveloperExceptionPage
-    - NON-DEV: `UseExceptionHandler()` + `UseHsts()` (baseline)
-  - Endpoint tecnici:
-    - `GET /health` (liveness)
-    - `GET /health/ready` (readiness DB via Npgsql `SELECT 1`, senza EF)
-    - `GET /api/db/ping` **solo Development** (diagnostica temporanea)
+### 🟡 Step 0 — Quality Gate (A3)
 
 - ⬜ **A3 — CI baseline (GitHub Actions)**
   - Workflow minimo “quality gate” su `push` + `pull_request`:
