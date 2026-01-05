@@ -1,4 +1,4 @@
-# 📘 05b_ApplicationUserTests — Manuale didattico completo dei test per `ApplicationUser`
+# 📘 JokesApp.Doc/JokesApp.Tests/Domain/Entities/05b_ApplicationUserTests — Manuale didattico completo dei test per `ApplicationUser`
 
 > **File di test:** `JokesApp.Tests/Domain/Entities/ApplicationUserTests.cs`  
 > **Classe di test:** `JokesApp.Tests.Domain.Entities.ApplicationUserTests`  
