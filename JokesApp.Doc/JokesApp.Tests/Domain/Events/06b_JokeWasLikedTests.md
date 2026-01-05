@@ -2,7 +2,6 @@
 
 > **File di test:** `JokesApp.Tests/Domain/Events/JokeWasLikedTests.cs`  
 > **Classe di test:** `JokesApp.Tests.Domain.Events.JokeWasLikedTests`
->
 > **Soggetto:** Domain Event `JokeWasLiked` (Domain Layer)
 
 ---
