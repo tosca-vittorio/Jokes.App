@@ -1,4 +1,4 @@
-# 📘 05a_JokeTests — Manuale didattico completo dei test per `Joke`
+# 📘 JokesApp.Doc/JokesApp.Tests/Domain/Entities/05a_JokeTests — Manuale didattico completo dei test per `Joke`
 
 > **File di test:** `JokesApp.Tests/Domain/Entities/JokeTests.cs`  
 > **Classe di test:** `JokesApp.Tests.Domain.Entities.JokeTests`  
